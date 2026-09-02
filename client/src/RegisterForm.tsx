@@ -19,7 +19,7 @@ export default function RegisterForm() {
     }).then(data => {
       console.log('data rxd', data);
       if (data.status == 'ok') {
-	setMessage('account creation successful! Login to continue');
+	setMessage('account creation successful! Check your email');
       } else {
 	setMessage('failed to create account');
       }

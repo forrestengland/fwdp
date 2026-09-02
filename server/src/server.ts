@@ -77,6 +77,7 @@ app.get('/api/verify-email', async (req: Request, res: Response) => {
       return res.status(400).send("This verification link is invalid or has expired");
       const user_id = result.rows[0].user_id;
     }
+    await pool.query("UPDATE users SET email_verified_at = NOW()", []);
     const query = "DELETE FROM email_verification_tokens WHERE token_hash = $1";
     await pool.query(query, [email_token_hash]);
     res.redirect(`${process.env.APP_URL}/email-verified`);
@@ -144,13 +145,13 @@ app.post('/api/auth/login', async (req: Request, res: Response) => {
   let userid = '';
 
   try {
-    const query = `SELECT id,password_hash FROM users WHERE EMAIL = '${email}'`;
+    const query = `SELECT id,password_hash FROM users WHERE EMAIL = '${email}' AND email_verified_at IS NOT NULL`;
     console.log(query);
     
     const result = await pool.query(query);
     
     if (result.rows.length < 1) {
-      res.json({status: 'failed', message: 'email not registered'});
+      res.json({status: 'failed', message: 'email not registered or not validated'});
       return;
     }
     

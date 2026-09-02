@@ -40,7 +40,7 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
       }
     }).catch(error => {
       console.log('fetch error:', error);
-      setMessage('error logging in');
+      setMessage('error logging in, is your email verified?');
     });
   }
   
