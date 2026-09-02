@@ -1,14 +1,17 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function ServerStatus() {
 
   const [serverStatus, setServerStatus] = useState('');
   const [serverLastChecked, setServerLastChecked] = useState('');
 
+  const navigate = useNavigate();  
+
   const dateFormatter = new Intl.DateTimeFormat('en-US', {
     dateStyle: 'medium',
     timeStyle: 'medium'
-  });
+  });  
 
   function updateServerStatus(event) {
     fetch('/api/health').then(response => {
@@ -27,7 +30,17 @@ export default function ServerStatus() {
   }
 
   useEffect(() => {
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.log('you are not logged in');
+      navigate('/');
+      return;
+    }
+
     updateServerStatus();
+    
   }, []);
   
   return (

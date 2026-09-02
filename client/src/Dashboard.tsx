@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 export default function Dashboard() {
 
   const [message, setMessage] = useState('');
+  const navigate = useNavigate();
 
   async function fetchMessage() {
 
     const token = localStorage.getItem('token');
-
-    if (!token) {
-      setMessage('you are not logged in');
-      return;
-    }
 
     try {
       const response = await fetch('/api/me', {
@@ -34,6 +31,15 @@ export default function Dashboard() {
   }
 
   useEffect(() => {
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.log('you are not logged in');
+      navigate('/');
+      return;
+    }
+
     fetchMessage();
   }, []);
 

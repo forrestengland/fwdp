@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface LogoutProps {
@@ -17,6 +17,18 @@ export default function Logout({ onLogout }: LogoutProps) {
     onLogout();
     navigate('/');
   }
+
+  useEffect(() => {
+
+    const token = localStorage.getItem('token');
+
+    if (!token) {
+      console.log('you are not logged in');
+      navigate('/');
+      return;
+    }
+
+  }, []);
 
   return (
     <>
