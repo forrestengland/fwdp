@@ -1,0 +1,42 @@
+/* navigation */
+a {
+    text-decoration: none;
+    margin: 1em;
+}
+
+.nav-container {
+    background-color: #aaa;
+    padding: 10px 0;
+    color: #fff;
+}
+
+.nav-container a {
+    color: #fff;
+}
+
+.nav-container a.nav-link-current {
+    color: #222;
+}
+
+/* forms */
+.form-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.form-row label {
+    width: 150px;
+    text-align: right;
+    margin-right: 15px;
+}
+
+.form-row input {
+    flex: 1;
+    max-width: 300px;
+}
+
+/* main content */
+.content-main {
+    padding: 1em;
+}
