@@ -2,8 +2,9 @@ export default function Landing() {
 
   return (
     <>
+      <h1>Landing</h1>
       <div className="content-main">
-	Login or Register to continue
+	<div className="message-container">Login or Register to continue</div>
       </div>
     </>
   );

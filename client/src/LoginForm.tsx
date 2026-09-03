@@ -56,18 +56,21 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
   return (
     <>
       <div className="content-main">
-	<span>Login</span> <span>{message}</span>
-	<form onSubmit={handleSubmit}>
-	  <div className="form-row">
-	    <label>email:</label>
-	    <input type="text" onChange={(e) => setEmail(e.target.value)}required />
-	  </div>
-	  <div className="form-row">
-	    <label>password:</label>
-	    <input type="password" onChange={(e) => setPassword(e.target.value)}required />
-	  </div>
-	  <button type="submit" onClick={handleSubmit}>Submit</button>
-	</form>
+	<h1>Login</h1>
+	<div>{message}</div>
+	<div className="form-container">
+	  <form onSubmit={handleSubmit}>
+	    <div className="form-row">
+	      <label>email:</label>
+	      <input type="text" onChange={(e) => setEmail(e.target.value)}required />
+	    </div>
+	    <div className="form-row">
+	      <label>password:</label>
+	      <input type="password" onChange={(e) => setPassword(e.target.value)}required />
+	    </div>
+	    <button className="button-submit" type="submit" onClick={handleSubmit}>Submit</button>
+	  </form>
+	</div>
       </div>
     </>
   );

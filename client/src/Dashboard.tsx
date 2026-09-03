@@ -46,9 +46,9 @@ export default function Dashboard() {
 
   return (
     <>
+      <h1>Dashboard</h1>
       <div className="content-main">
 	<div>{message}</div>
-	{/*	<button onClick={fetchMessage}>get message</button> */}
       </div>
     </>
   );

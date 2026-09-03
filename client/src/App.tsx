@@ -36,7 +36,7 @@ function App() {
 	  <Route path="/logout" element={<Logout onLogout={loginStateChange}/>} />
 	  <Route path="/dash" element={<Dashboard />} />
 	  <Route path="/email-verified" element={<EmailVerified />} />
-	  <Route path="/profile" element={<Profile user={username} />} />	  
+	  <Route path="/profile" element={<Profile user={username} onLogout={loginStateChange} />} />	  
 	  <Route path="/" element={<Landing />} />	  	  
 	</Routes>
       </BrowserRouter>

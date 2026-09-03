@@ -43,18 +43,34 @@ a {
     max-width: 300px;
 }
 
+.form-container {
+    border-radius: 1em;
+    border: 1px solid #aaa;
+    padding: 1em 1em 0 1em;
+    margin-bottom: 1em;
+    max-width: 40em;
+}
+
 .button-inline {
     margin-left: 1em;
 }
 
+.button-submit {
+    margin-bottom: 1em;
+}
+
 /* message */
 .message-container {
+    border-radius: 1em;
+    border: 1px solid #aaa;
+    padding: 1em 1em 1em 1em;
     margin-bottom: 1em;
+    max-width: 40em;
 }
 
 /* main content */
 .content-main {
-    padding: 1em;
+    padding: 0;
 }
 
 .user-status {

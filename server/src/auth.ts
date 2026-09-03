@@ -54,14 +54,107 @@ export async function hashPassword(password: string) {
   return hash;
 }
 
-/* TODO - make sure user is logged in */
-router.patch('/email-change', async (req: Request, res: Response) => {
+router.post('/account-delete', authenticateToken, async (req: Request, res: Response) => {
+
+  const reqData = req.body;
+  console.log('got account delete request: ', reqData);
+
+  const email = reqData.email;
+  const password = reqData.password;
+
+  // first make sure the password is correct (get the user's current data)
+  let password_hash = '';
+  let user_id = '';
+  try {
+    const result = await pool.query('SELECT id,password_hash FROM users WHERE email = $1', [email]);
+    if (result.rows.length != 1) {
+      console.log('error getting password hash on account delete request');
+      res.json({status: 'failed', message: 'no user account'});
+      return;
+    }
+    password_hash = result.rows[0].password_hash;
+    user_id = result.rows[0].id;
+  } catch (error: unknown) {
+    console.log('error checking user info on account delete request: ', error);
+    res.status(400).send("error confirming password on account delete");
+    return;
+  }
+
+  const match = await argon2.verify(password_hash, password);
+  if (!match) {
+    res.json({status: 'failed', message: 'wrong password'});
+    return;
+  }
+
+  // password was confirmed, delete the account
+  try {
+    await pool.query('DELETE FROM users WHERE id = $1', [user_id]);
+  } catch (error: unknown) {
+    console.log('error deleting account: ', error);
+    res.json({status: 'failed', message: 'error deleting account'});
+    return;
+  }
+  
+  res.json({status: 'ok', message: 'the account was deleted'});
+});
+
+router.post('/password-change', authenticateToken, async (req: Request, res: Response) => {
+
+  const reqData = req.body;
+  console.log('got password change request: ', reqData);
+
+  const email = reqData.email;
+  const password_old = reqData.password;
+  const password_new = reqData.new_password;
+
+  // first make sure the password is correct (get the user's current data)
+  let password_old_hash = '';
+  let user_id = '';
+  try {
+    const result = await pool.query('SELECT id,password_hash FROM users WHERE email = $1', [email]);
+    if (result.rows.length != 1) {
+      console.log('error getting password hash on password change request');
+      res.json({status: 'failed', message: 'no such user'});
+      return;
+    }
+    password_old_hash = result.rows[0].password_hash;
+    user_id = result.rows[0].id;
+  } catch (error: unknown) {
+    console.log('error checking user info on password change request: ', error);
+    res.status(400).send("error confirming password on password change");
+    return;
+  }
+
+  const match = await argon2.verify(password_old_hash, password_old);
+  if (!match) {
+    res.json({status: 'failed', message: 'wrong password'});
+    return;
+  }
+
+  // hash the new password and update it - TODO: password strength validation
+  const password_new_hash = await hashPassword(password_new);
+  try {
+    await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [password_new_hash, user_id]);
+  } catch (error: unknown) {
+    console.log('error updating user password hash: ', error);
+    res.json({status: 'failed', message: 'error updating password'});
+    return;
+  }
+  
+  res.json({status: 'ok', message: 'the password was changed'});
+});
+
+router.patch('/email-change', authenticateToken, async (req: Request, res: Response) => {
 
   const reqData = req.body;
   
   console.log('email change request:', reqData);
+
+  // the old email address from the request
   const email_old = reqData.email;
+  // the submitted password for confirmation of email change
   const password_confirm = reqData.password;
+  // the new requested email address to change to
   const email_new = reqData.email_new;
 
   // first make sure the password is correct (get the user's current data)
@@ -82,10 +175,11 @@ router.patch('/email-change', async (req: Request, res: Response) => {
     return;
   }
   
-  const hash = await hashPassword(reqData.password);
-  const match = await argon2.verify(hash, password_confirm);
+  const match = await argon2.verify(password_hash, password_confirm);
+  
   if (!match) {
     res.json({status: 'failed', message: 'wrong password'});
+    return;
   }
 
   // first check if anyone else is using that email
@@ -246,7 +340,6 @@ router.post('/login', async (req: Request, res: Response) => {
 
 // user message
 router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-
   res.json({status: 'ok', message: `hello ${req.user?.email}, you are authenticated`});
 });
 
