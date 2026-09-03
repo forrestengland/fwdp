@@ -1,5 +1,5 @@
 import argon2 from 'argon2';
-import { Pool } from 'pg';
+import { pool } from './db';
 
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
@@ -10,14 +10,6 @@ import { resend } from './resend';
 import { Router } from 'express';
 
 const router = Router();
-
-const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASSWORD,
-  port: 5432
-});
 
 export async function sendVerificationEmail(email: string, token: string) {
 

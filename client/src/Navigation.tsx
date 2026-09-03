@@ -26,9 +26,9 @@ export default function Navigation({ token, user }: NavigationProps) {
 	  {!token && <Link to="/register" className={pathname == '/register' ? "nav-link-current" : "nav-link"}>Register</Link>}
 
 	  {token && <Link to="/dash" className={pathname == '/dash' ? "nav-link-current" : "nav-link"}>Dash</Link>}
+	  {token && <Link to="/todo" className={pathname == '/todo' ? "nav-link-current" : "nav-link"}>ToDo</Link>}	  
 	  {token && <Link to="/profile" className={pathname == '/profile' ? "nav-link-current" : "nav-link"}>Profile</Link>}
 	  {token && <Link to="/logout" className={pathname == '/logout' ? "nav-link-current" : "nav-link"}>Logout</Link>}
-	  {/*	  {token && <Link to="/health" className={pathname == '/health' ? "nav-link-current" : "nav-link"}>Health</Link>} */}
 	</nav>
 	  <span className="user-status">Hello, {username}</span>
 	</div>

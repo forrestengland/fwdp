@@ -101,11 +101,11 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
 	},
 	body: JSON.stringify({ email: user, password: passwordDeleteConfirm })
       });
-      resData = await response.json();
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
 	return;
       }
+      resData = await response.json();
     } catch (error: unknown) {
       console.log('error deleting account');
       setMessage('Error deleting account');

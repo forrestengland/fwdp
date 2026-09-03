@@ -14,6 +14,7 @@ import Dashboard from './Dashboard';
 import Landing from './Landing.tsx';
 import EmailVerified from './EmailVerified.tsx';
 import Profile from './Profile.tsx';
+import Todos from './Todos.tsx';
 
 function App() {
 
@@ -38,7 +39,9 @@ function App() {
 	  
 	  <Route path="/dash" element={<Dashboard token={token} />} />
 	  <Route path="/logout" element={<Logout onLogout={loginStateChange} token={token} />} />	  
-	  <Route path="/profile" element={<Profile user={username} token={token} onLogout={loginStateChange} />} />	  
+	  <Route path="/profile" element={<Profile user={username} token={token} onLogout={loginStateChange} />} />
+
+	  <Route path="/todo" element={<Todos token={token} />} />
 
 	</Routes>
       </BrowserRouter>

@@ -4,6 +4,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 
 import authRouter from './auth';
+import todosRouter from './todos';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -12,6 +13,7 @@ const PORT = process.env.PORT || 3000;
 app.use(express.json());
 
 app.use('/api/auth', authRouter);
+app.use('/api/todos', todosRouter);
 
 // start listening for traffic
 app.listen(PORT, () => {

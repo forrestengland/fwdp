@@ -9,6 +9,7 @@ a {
     padding: 10px 0;
     color: #fff;
     display: flex;
+    margin-bottom: 0.5em;
 }
 
 .nav-container a {
@@ -44,7 +45,7 @@ a {
 }
 
 .form-container {
-    border-radius: 1em;
+/*    border-radius: 1em; */
     border: 1px solid #aaa;
     padding: 1em 1em 0 1em;
     margin-bottom: 1em;
@@ -61,11 +62,11 @@ a {
 
 /* message */
 .message-container {
-    border-radius: 1em;
+/*    border-radius: 1em; */
     border: 1px solid #aaa;
     padding: 1em 1em 1em 1em;
     margin-bottom: 1em;
-    max-width: 40em;
+/*    max-width: 40em; */
 }
 
 /* main content */
@@ -79,4 +80,8 @@ a {
 /* general overrides */
 h1, h2 {
     margin: 0.2em 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
 }
