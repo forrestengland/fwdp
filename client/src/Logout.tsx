@@ -2,10 +2,11 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface LogoutProps {
+  token: string;
   onLogout: () => {};
 }
 
-export default function Logout({ onLogout }: LogoutProps) {
+export default function Logout({ token, onLogout }: LogoutProps) {
 
   const [message, setMessage] = useState('');
 
@@ -20,7 +21,7 @@ export default function Logout({ onLogout }: LogoutProps) {
 
   useEffect(() => {
 
-    const token = localStorage.getItem('token');
+    //    const token = localStorage.getItem('token');
 
     if (!token) {
       console.log('you are not logged in');
@@ -28,13 +29,16 @@ export default function Logout({ onLogout }: LogoutProps) {
       return;
     }
 
-  }, []);
+  }, [token]);
 
   return (
     <>
+      <h1>Log Out</h1>
       <div className="content-main">
-	<div>{message}</div>
-	<button onClick={logoutUser}>logout</button>
+	{message && <div>{message}</div>}
+	<div className="form-container">
+	  <button className="button-submit" onClick={logoutUser}>logout</button>
+	</div>
       </div>
     </>
   );

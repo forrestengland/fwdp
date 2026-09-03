@@ -2,7 +2,9 @@ export default function() {
 
   return (
     <>
-      Your email has been verified. Log in to continue
+	<div className="content-main">
+					Your email has been verified. Log in to continue
+	</div>
     </>
   );
 }

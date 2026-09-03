@@ -30,14 +30,16 @@ function App() {
       <BrowserRouter>
 	<Navigation token={token} user={username} />
 	<Routes>
-	  <Route path="/health" element={<ServerHealth />} />
+	  <Route path="/" element={<Landing />} />	  	  
 	  <Route path="/register" element={<RegisterForm />} />
 	  <Route path="/login" element={<LoginForm onLogin={loginStateChange} />} />
-	  <Route path="/logout" element={<Logout onLogout={loginStateChange}/>} />
-	  <Route path="/dash" element={<Dashboard />} />
-	  <Route path="/email-verified" element={<EmailVerified />} />
-	  <Route path="/profile" element={<Profile user={username} onLogout={loginStateChange} />} />	  
-	  <Route path="/" element={<Landing />} />	  	  
+	  <Route path="/email-verified" element={<EmailVerified />} />	  
+	  <Route path="/health" element={<ServerHealth />} />
+	  
+	  <Route path="/dash" element={<Dashboard token={token} />} />
+	  <Route path="/logout" element={<Logout onLogout={loginStateChange} token={token} />} />	  
+	  <Route path="/profile" element={<Profile user={username} token={token} onLogout={loginStateChange} />} />	  
+
 	</Routes>
       </BrowserRouter>
     </>

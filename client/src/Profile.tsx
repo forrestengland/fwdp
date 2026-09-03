@@ -4,10 +4,11 @@ import { useNavigate } from 'react-router-dom';
 
 interface ProfileProps {
   user: string;
+  token: string;
   onLogout: (user: string) => {};
 }
 
-export default function Profile({ user, onLogout }: ProfileProps) {
+export default function Profile({ user, token, onLogout }: ProfileProps) {
 
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
@@ -24,7 +25,7 @@ export default function Profile({ user, onLogout }: ProfileProps) {
 
     console.log(`confirming email change from ${user} to ${email} with password ${passwordEmailConfirm}`);
 
-    const token = localStorage.getItem('token');
+    //    const token = localStorage.getItem('token');
 
     // send the email change request to the api server
     let resData = null;
@@ -56,7 +57,7 @@ export default function Profile({ user, onLogout }: ProfileProps) {
 
     console.log(`confirming password change`);
 
-    const token = localStorage.getItem('token');
+    //    const token = localStorage.getItem('token');
     
     let resData = null;
     try {
@@ -88,7 +89,7 @@ export default function Profile({ user, onLogout }: ProfileProps) {
 
     console.log('confirming account deletion');
 
-    const token = localStorage.getItem('token');
+    //    const token = localStorage.getItem('token');
     
     let resData = null;
     try {
@@ -122,7 +123,7 @@ export default function Profile({ user, onLogout }: ProfileProps) {
 
   useEffect(() => {
 
-    const token = localStorage.getItem('token');
+    //    const token = localStorage.getItem('token');
 
     if (!token) {
       console.log('you are not logged in');
@@ -130,14 +131,14 @@ export default function Profile({ user, onLogout }: ProfileProps) {
       return;
     }
 
-  }, []);
+  }, [token]);
 
 
   return (
     <>
 	<div className="content-main">
 	  <h1>Profile Page</h1>
-	  <div className="message-container">{message}</div>
+	  {message && <div className="message-container">{message}</div>}
 	  <div className="form-container">
 	    <h2>Change Email Address</h2>
 	    <form>

@@ -75,3 +75,8 @@ a {
 
 .user-status {
 }
+
+/* general overrides */
+h1, h2 {
+    margin: 0.2em 0;
+}
