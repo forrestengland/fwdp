@@ -60,6 +60,10 @@ a {
     margin-bottom: 1em;
 }
 
+.todo-toggle {
+    margin-right: 1em;
+}
+
 /* message */
 .message-container {
 /*    border-radius: 1em; */
@@ -84,4 +88,21 @@ h1, h2 {
 
 body {
     font-family: Arial, sans-serif;
+}
+
+/* todo list stuff */
+.todo-container {
+    border: 1px solid #aaa;
+    padding: 1em 1em 1em 1em;
+    margin-bottom: 1em;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+/*    width: 100%; */
+}
+
+.todo-container div {
+    display: flex;
+    align-items: center;
+    gap: 0.5em;
 }

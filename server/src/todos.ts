@@ -40,10 +40,40 @@ router.get('/todos', authenticateToken, async (req: Request, res: Response) => {
   res.json({ status: 'success', todos: todos});
 });
 
-router.patch('/todos/:id', authenticateToken, (req: Request, res: Response) => {
+router.patch('/todos/:id', authenticateToken, async (req: Request, res: Response) => {
+
+  const id = req.params.id;
+  const completed = req.body.completed;
+
+  console.log('got todo completed state change:',id,completed);
+  
+  try {
+    const response = await pool.query('UPDATE todos SET completed = $1 WHERE id = $2', [completed, id]);
+  } catch (e: unknown) {
+    console.log('error updating todo completion: ', e);
+    res.json({status: 'failure', message: 'error changing todo completion'});
+    return;
+  }
+
+  res.json({status: 'ok', message: 'the todo completion was updated'});
 });
 
-router.delete('/todos/:id', authenticateToken, (req: Request, res: Response) => {
+router.delete('/todos/:id', authenticateToken, async (req: Request, res: Response) => {
+
+  const id = req.params.id;
+
+  console.log('got todo delete:',id);
+  
+  try {
+    const response = await pool.query('DELETE FROM todos WHERE id = $1', [id]);
+  } catch (e: unknown) {
+    console.log('error deleting todo: ', e);
+    res.json({status: 'failure', message: 'error deleting todo'});
+    return;
+  }
+
+  res.json({status: 'ok', message: 'the todo was deleted'});
+  
 });
 
 export default router;
