@@ -54,6 +54,14 @@ export async function hashPassword(password: string) {
   return hash;
 }
 
+/* TODO - make sure user is logged in */
+router.patch('/email-change', async (req: Request, res: Response) => {
+
+  const reqData = req.body;
+  console.log('email change request:', reqData);
+  res.status(200).json({ status: 'ok' });      
+});
+
 // email verification endpoint
 router.get('/verify-email', async (req: Request, res: Response) => {
 
@@ -80,8 +88,6 @@ router.get('/verify-email', async (req: Request, res: Response) => {
     res.json({status: 'failed'});
     return;
   }
-
-  
 });
 
 // health check endpoint

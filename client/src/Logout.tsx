@@ -14,7 +14,7 @@ export default function Logout({ onLogout }: LogoutProps) {
   function logoutUser() {
     localStorage.removeItem('token');
     setMessage('you are logged out');
-    onLogout();
+    onLogout('Guest');
     navigate('/');
   }
 

@@ -13,19 +13,22 @@ import Logout from './Logout.tsx';
 import Dashboard from './Dashboard';
 import Landing from './Landing.tsx';
 import EmailVerified from './EmailVerified.tsx';
+import Profile from './Profile.tsx';
 
 function App() {
 
   const [token, setToken] = useState('');
+  const [username, setUsername] = useState('Guest');
 
-  function loginStateChange() {
+  function loginStateChange(user) {
     setToken(localStorage.getItem('token'));
+    setUsername(user);
   }
 
   return (
     <>
       <BrowserRouter>
-	<Navigation token={token} />
+	<Navigation token={token} user={username} />
 	<Routes>
 	  <Route path="/health" element={<ServerHealth />} />
 	  <Route path="/register" element={<RegisterForm />} />
@@ -33,6 +36,7 @@ function App() {
 	  <Route path="/logout" element={<Logout onLogout={loginStateChange}/>} />
 	  <Route path="/dash" element={<Dashboard />} />
 	  <Route path="/email-verified" element={<EmailVerified />} />
+	  <Route path="/profile" element={<Profile />} />	  
 	  <Route path="/" element={<Landing />} />	  	  
 	</Routes>
       </BrowserRouter>

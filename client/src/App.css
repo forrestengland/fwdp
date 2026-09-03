@@ -8,6 +8,7 @@ a {
     background-color: #aaa;
     padding: 10px 0;
     color: #fff;
+    display: flex;
 }
 
 .nav-container a {
@@ -16,6 +17,12 @@ a {
 
 .nav-container a.nav-link-current {
     color: #222;
+}
+
+/* user status */
+.user-status {
+    margin-left: auto;
+    margin-right: 1em;
 }
 
 /* forms */
@@ -36,7 +43,14 @@ a {
     max-width: 300px;
 }
 
+.button-inline {
+    margin-left: 1em;
+}
+
 /* main content */
 .content-main {
     padding: 1em;
+}
+
+.user-status {
 }

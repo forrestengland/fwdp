@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {
-  onLogin: () => {};
+  onLogin: (user) => {};
 }
 
 export default function LoginForm({ onLogin }: LoginFormProps) {
@@ -13,9 +13,15 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
 
   const navigate = useNavigate();
 
+  // handle submission of the login form
   function handleSubmit(e: FormEvent) {
+
+    // don't do the normal form post
     e.preventDefault();
+
     console.log(`submitting login: email = ${email}, password = ${password}`);
+
+    // submit the login request
     fetch('/api/auth/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
@@ -24,7 +30,9 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
       if (!response.ok) throw new Error('network response not ok');
       return response.json();
     }).then(data => {
+
       console.log('data rxd', data);
+
       if (data.status == 'ok') {
 
 	setMessage('account login successful');
@@ -32,9 +40,10 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
 	console.log('got token: ', data.token);
 	localStorage.setItem('token', data.token);
 
-	onLogin();
+	onLogin(email);
 
 	navigate('/dash');
+	
       } else {
 	setMessage('failed to login');
       }
