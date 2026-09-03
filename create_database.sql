@@ -32,3 +32,14 @@ CREATE TABLE email_verification_tokens (
 CREATE INDEX idx_email_verification_tokens_user_id
      ON email_verification_tokens(user_id);
 
+-- create the todo list table
+CREATE TABLE todos (
+     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+     title TEXT NOT NULL,
+     completed BOOLEAN NOT NULL DEFAULT FALSE,
+     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX idx_todos_user_id ON todos(user_id);
+GRANT ALL ON todos TO fwdp;

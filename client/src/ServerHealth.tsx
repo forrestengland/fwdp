@@ -14,7 +14,7 @@ export default function ServerStatus() {
   });  
 
   function updateServerStatus(event) {
-    fetch('/api/health').then(response => {
+    fetch('/api/auth/health').then(response => {
       if (!response.ok) throw new Error('network response not ok');
       return response.json();
     }).then(data => {
