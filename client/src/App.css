@@ -47,6 +47,11 @@ a {
     margin-left: 1em;
 }
 
+/* message */
+.message-container {
+    margin-bottom: 1em;
+}
+
 /* main content */
 .content-main {
     padding: 1em;

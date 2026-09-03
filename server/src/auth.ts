@@ -21,7 +21,7 @@ const pool = new Pool({
 
 export async function sendVerificationEmail(email: string, token: string) {
 
-  const verificationUrl = `${process.env.APP_URL}/api/verify-email?token=${encodeURIComponent(token)}`;
+  const verificationUrl = `${process.env.APP_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
 
   const { data, error } = await resend.emails.send({
     from: "My Test Site <no-reply@updates.pierceforrestengland.com>",
@@ -58,8 +58,69 @@ export async function hashPassword(password: string) {
 router.patch('/email-change', async (req: Request, res: Response) => {
 
   const reqData = req.body;
+  
   console.log('email change request:', reqData);
-  res.status(200).json({ status: 'ok' });      
+  const email_old = reqData.email;
+  const password_confirm = reqData.password;
+  const email_new = reqData.email_new;
+
+  // first make sure the password is correct (get the user's current data)
+  let password_hash = '';
+  let user_id = '';
+  try {
+    const result = await pool.query('SELECT id,password_hash FROM users WHERE email = $1', [email_old]);
+    if (result.rows.length != 1) {
+      console.log('error getting password hash on email update request');
+      res.json({status: 'failed', message: 'no such user'});
+      return;
+    }
+    password_hash = result.rows[0].password_hash;
+    user_id = result.rows[0].id;
+  } catch (error: unknown) {
+    console.log('error checking user info on email update request: ', error);
+    res.status(400).send("error confirming password");
+    return;
+  }
+  
+  const hash = await hashPassword(reqData.password);
+  const match = await argon2.verify(hash, password_confirm);
+  if (!match) {
+    res.json({status: 'failed', message: 'wrong password'});
+  }
+
+  // first check if anyone else is using that email
+  try {
+    const response = await pool.query('SELECT email FROM users WHERE email = $1', [email_new]);
+    if (response.rows.length) {
+      res.json({status: 'failed', message: 'new email already in use'});
+      return;
+    }
+  } catch (error: unknown) {
+    console.log('error checking if email is unique processing email change request');
+    res.status(400).send("error checking new email is unique");
+    return;
+  }
+  
+  // TODO: send email to old address with link so they can cancel the change
+  
+  // create the email verification token to verify new email
+  const email_token = crypto.randomBytes(32).toString("hex");
+  // hash it
+  const email_token_hash = crypto.createHash("sha256").update(email_token).digest("hex");
+  // add to database
+  try {
+    const result = await pool.query("INSERT INTO email_verification_tokens (user_id, token_hash, expires_at) VALUES($1,$2, NOW() + INTERVAL '24 hours')", [user_id, email_token_hash]);
+    // update the pending_email column for the user to update the email once it's confirmed
+    await pool.query("UPDATE users SET pending_email = $1 WHERE id = $2", [email_new, user_id]);
+  } catch (error: unknown) {
+    console.log('error creating user token: ', error);
+    res.json({status: 'failed'});
+    return;
+  }
+
+  await sendVerificationEmail(email_new, email_token);
+
+  res.json({status: 'ok', message: 'Email change requested. check the new email you entered to confirm'});
 });
 
 // email verification endpoint
@@ -78,10 +139,15 @@ router.get('/verify-email', async (req: Request, res: Response) => {
     if (result.rows.length === 0) {
       return res.status(400).send("This verification link is invalid or has expired");
       const user_id = result.rows[0].user_id;
-    }
+    }    
+    
     await pool.query("UPDATE users SET email_verified_at = NOW()", []);
     const query = "DELETE FROM email_verification_tokens WHERE token_hash = $1";
     await pool.query(query, [email_token_hash]);
+
+    // let's try updating the email if this was an email change request - email_pending promoted to email if present
+    await pool.query("UPDATE users SET email = pending_email, pending_email = NULL where pending_email IS NOT NULL");
+    
     res.redirect(`${process.env.APP_URL}/email-verified`);
   } catch (error: unknown) {
     console.log('error verifying user: ', error);

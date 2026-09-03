@@ -2,7 +2,11 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-export default function Profile() {
+interface ProfileProps {
+  user: string;
+}
+
+export default function Profile({ user }: ProfileProps) {
 
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
@@ -14,23 +18,22 @@ export default function Profile() {
 
     e.preventDefault();
 
-    console.log(`confirming email change  to ${email} with password ${passwordEmailConfirm}`);
+    console.log(`confirming email change from ${user} to ${email} with password ${passwordEmailConfirm}`);
 
     // send the email change request to the api server
-    let rsp = null;
+    let resData = null;
     try {
       const response = await fetch('/api/auth/email-change', {
 	method: 'PATCH',
 	headers: {'Content-Type': 'application/json'},
-	body: JSON.stringify({email: email, password: passwordEmailConfirm})
+	body: JSON.stringify({email: user, password: passwordEmailConfirm, email_new: email})
       });
-      rsp = response;
+      resData = await response.json();
     } catch (error: unknown) {
       console.log('error updating email');
     }
-    console.log('got response: ', rsp);
-
-
+    console.log('got response: ', resData);
+    setMessage(resData.message);
   }
 
   useEffect(() => {
@@ -50,7 +53,7 @@ export default function Profile() {
     <>
 	<div className="content-main">
 	  <h1>Profile Page</h1>
-	  <div>{message}</div>
+	  <div className="message-container">{message}</div>
 	  <form>
 	    <div className="form-row">
 	      <label>Change email:</label>

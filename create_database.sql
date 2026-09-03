@@ -12,6 +12,8 @@ CREATE TABLE users (
        updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
        CONSTRAINT users_email_unique UNIQUE(email)
 );
+ALTER TABLE users ADD pending_email TEXT;
+
 -- create an index for great speedup when searching on email
 CREATE UNIQUE INDEX users_email_lower_idx ON users (LOWER(email));
 
