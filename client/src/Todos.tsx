@@ -1,17 +1,14 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-interface TodosProps {
-  token: string;
-  loading: boolean;
-}
-
-export default function Todos({ token, loading }: TodosProps) {
+export default function Todos() {
 
   const [message, setMessage] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [todos, setTodos] = useState([]);
   const navigate = useNavigate();
+  const { user, loading, token } = useAuth();
 
   async function fetchTodos() {
 
@@ -71,6 +68,7 @@ export default function Todos({ token, loading }: TodosProps) {
     }
 
     console.log('todo completion toggled: ', checked);
+    fetchTodos();
     //    setMessage('ToDo updated successfully');
   }
 
@@ -144,13 +142,11 @@ export default function Todos({ token, loading }: TodosProps) {
   }
 
   useEffect(() => {
-    fetchTodos();
-  }, []);  
-
-  useEffect(() => {
     if (!loading) {
       if (!token) {
 	navigate('/');
+      } else {
+	fetchTodos();
       }
     }
   }, [loading]);
@@ -168,7 +164,7 @@ export default function Todos({ token, loading }: TodosProps) {
 	{todos.map((todo) => (
 	  <div key={todo.id} className="todo-container">
 	    <div>
-	      <input className="todo-toggle" type="checkbox" onChange={(e) => todoCompletionChanged(todo.id, e)} />
+	      <input className="todo-toggle" type="checkbox" checked={todo.completed ? "checked" : ""} onChange={(e) => todoCompletionChanged(todo.id, e)} />
 	      <span>{todo.title}</span>
 	    </div>
 	    <button onClick={(e) => todoDeleteClicked(todo.id, e)}>🗑️</button>

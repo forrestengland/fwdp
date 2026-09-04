@@ -52,15 +52,15 @@ function App() {
 	  <Routes>
 	    <Route path="/" element={<Landing />} />	  	  
 	    <Route path="/register" element={<RegisterForm />} />
-	    <Route path="/login" element={<LoginForm onLogin={loginStateChange} />} />
+	    <Route path="/login" element={<LoginForm />} />
 	    <Route path="/email-verified" element={<EmailVerified />} />	  
 	    <Route path="/health" element={<ServerHealth />} />
 	  
-	    <Route path="/dash" element={<ProtectedRoute><Dashboard token={token} /></ProtectedRoute>} />
-	    <Route path="/logout" element={<ProtectedRoute><Logout onLogout={loginStateChange} token={token} /></ProtectedRoute>} />	  
-	    <Route path="/profile" element={<ProtectedRoute><Profile user={username} token={token} onLogout={loginStateChange} /></ProtectedRoute>} />
+	    <Route path="/dash" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+	    <Route path="/logout" element={<ProtectedRoute><Logout /></ProtectedRoute>} />	  
+	    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
-	    <Route path="/todo" element={<ProtectedRoute><Todos token={token} loading={loading}/></ProtectedRoute>} />
+	    <Route path="/todo" element={<ProtectedRoute><Todos /></ProtectedRoute>} />
 
 	  </Routes>
 	</AuthProvider>
