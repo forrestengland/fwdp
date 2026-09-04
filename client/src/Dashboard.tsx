@@ -1,11 +1,9 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
 export default function Dashboard() {
 
   const [message, setMessage] = useState('');
-  const navigate = useNavigate();
   const { user, token, loading } = useAuth();
 
   async function fetchMessage() {

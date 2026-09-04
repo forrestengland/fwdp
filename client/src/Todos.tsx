@@ -1,14 +1,20 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+
+interface TodoItem {
+  id: string;
+  title: string;
+  completed: boolean;
+}
 
 export default function Todos() {
 
   const [message, setMessage] = useState('');
   const [newTitle, setNewTitle] = useState('');
-  const [todos, setTodos] = useState([]);
+  const [todos, setTodos] = useState<TodoItem[]>([]);
   const navigate = useNavigate();
-  const { user, loading, token } = useAuth();
+  const { loading, token } = useAuth();
 
   async function fetchTodos() {
 
@@ -41,9 +47,9 @@ export default function Todos() {
     setTodos(resData.todos);
   }
 
-  async function todoCompletionChanged(id: string, e: FormEvent) {
+  async function todoCompletionChanged(id: string, e: React.ChangeEvent<HTMLInputElement>) {
 
-    const checked = e.target.checked;
+    const checked = e.currentTarget.checked;
 
     console.log('todo completion toggled: ', id, checked);
 
@@ -158,16 +164,16 @@ export default function Todos() {
       <div className="content-main">
 	<div className="message-container">
 	  <label>New: </label>
-	  <input type="text" onChange={(e) => setNewTitle(e.target.value)} />
+	  <input type="text" onChange={(e) => setNewTitle(e.currentTarget.value)} />
 	  <button type="submit" onClick={newTodoClicked} className="button-inline">Create</button>
 	</div>
 	{todos.map((todo) => (
 	  <div key={todo.id} className="todo-container">
 	    <div>
-	      <input className="todo-toggle" type="checkbox" checked={todo.completed ? "checked" : ""} onChange={(e) => todoCompletionChanged(todo.id, e)} />
+	      <input className="todo-toggle" type="checkbox" checked={todo.completed} onChange={(e) => todoCompletionChanged(todo.id, e)} />
 	      <span>{todo.title}</span>
 	    </div>
-	    <button onClick={(e) => todoDeleteClicked(todo.id, e)}>🗑️</button>
+	    <button onClick={() => todoDeleteClicked(todo.id)}>🗑️</button>
 	    </div>
 	))}
       </div>

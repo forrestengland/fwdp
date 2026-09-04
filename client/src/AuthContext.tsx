@@ -1,12 +1,36 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
-import { jwtDecode } from 'jwt-decode';
+import { jwtDecode, type JwtPayload } from 'jwt-decode';
 
-const AuthContext = createContext(null);
+interface AuthPayload extends JwtPayload {
+  email: string;
+  userId: string;
+}
 
-export const AuthProvider = ({ children }) => {
+interface AuthContextType {
+  loading: boolean;
+  user: AuthPayload | null;
+  token: string;
+  login: (tok: string) => void;
+  logout: () => void;
+}
 
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
+const AuthContext = createContext<AuthContextType | null>(null);
+
+export interface AuthenticatedRequest extends Request {
+  user?: {
+    userId: string;
+    email: string;
+  };
+}
+
+interface AuthProviderProps {
+  children: React.ReactNode;
+}
+
+export const AuthProvider = ({ children }: AuthProviderProps) => {
+
+  const [user, setUser] = useState<AuthPayload | null>(null);
+  const [token, setToken] = useState('');
   const [loading, setLoading] = useState(true); // loading by default
 
   useEffect(() => {
@@ -14,31 +38,36 @@ export const AuthProvider = ({ children }) => {
     if (tok) {
 
       // parse token
-      const decoded = jwtDecode(tok);
+      const decoded = jwtDecode<AuthPayload>(tok);
       const userEmail = decoded.email;
+
+      if (!decoded.exp) {
+	setLoading(false);
+	return;
+      }
 
       if (decoded.exp * 1000 > Date.now()) {
 	setToken(tok);
-	setUser({email: userEmail, id: decoded.userid});
+	setUser({email: userEmail, userId: decoded.userId});
       } else {
-	setToken(null);
+	setToken('');
 	localStorage.removeItem('token');
       }
     }
     setLoading(false);
   }, []);
 
-  const login = (tok) => {
+  const login = (tok: string) => {
     localStorage.setItem('token', tok);
-    const decoded = jwtDecode(tok);
+    const decoded = jwtDecode<AuthPayload>(tok);
     setToken(tok);
-    setUser({email: decoded.email, id: decoded.userid});
+    setUser({email: decoded.email, userId: decoded.userId});
   };
 
   const logout = () => {
     localStorage.removeItem('token');
     setUser(null);
-    setToken(null);
+    setToken('');
   };
 
   return (
@@ -49,4 +78,11 @@ export const AuthProvider = ({ children }) => {
 
 };
 
-export const useAuth = () => useContext(AuthContext);
+export const useAuth = () => {
+
+  const context = useContext(AuthContext);
+  if (!context) {
+    throw new Error('useAuth must be used within an AuthProvider');
+  }
+  return context;
+};

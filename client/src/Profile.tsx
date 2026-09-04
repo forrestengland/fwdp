@@ -1,5 +1,5 @@
-/* profile page - edit email, name, picture, delete profile */
-import { useState, useEffect } from 'react';
+/* profile page - change email, change password, delete account */
+import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
 
@@ -8,12 +8,11 @@ export default function Profile() {
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
   const [newPassword, setNewPassword] = useState('');
-  const [newEmailSubmitted, setNewEmailSubmitted] = useState(true);
   const [passwordEmailConfirm, setPasswordEmailConfirm] = useState('');
   const [passwordChangeConfirm, setPasswordChangeConfirm] = useState('');
   const [passwordDeleteConfirm, setPasswordDeleteConfirm] = useState('');    
   const navigate = useNavigate();
-  const { user, token, loading, logout } = useAuth();
+  const { user, token, logout } = useAuth();
 
   async function confirmEmailChange(e: FormEvent) {
 
