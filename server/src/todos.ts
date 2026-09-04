@@ -1,13 +1,17 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import { pool } from './db';
 import { authenticateToken, AuthenticatedRequest } from './authenticateToken';
 
 const router = Router();
 
-router.post('/todos-new', authenticateToken, async (req: Request, res: Response) => {
+router.post('/todos-new', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
-  //  console.log('user from token: ', req.user);
-  const user_id = req.user.userid;
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+  
+  const user_id = req.user.userId;
   const title = req.body.title;
   let todo_id = '';
 
@@ -23,9 +27,14 @@ router.post('/todos-new', authenticateToken, async (req: Request, res: Response)
   res.json({ status: 'ok', todo_id: todo_id});
 });
 
-router.get('/todos', authenticateToken, async (req: Request, res: Response) => {
+router.get('/todos', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
-  const user_id = req.user.userid;
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  const user_id = req.user.userId;
   let todos = [];
 
   try {
@@ -40,7 +49,7 @@ router.get('/todos', authenticateToken, async (req: Request, res: Response) => {
   res.json({ status: 'success', todos: todos});
 });
 
-router.patch('/todos/:id', authenticateToken, async (req: Request, res: Response) => {
+router.patch('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const id = req.params.id;
   const completed = req.body.completed;
@@ -58,7 +67,7 @@ router.patch('/todos/:id', authenticateToken, async (req: Request, res: Response
   res.json({status: 'ok', message: 'the todo completion was updated'});
 });
 
-router.delete('/todos/:id', authenticateToken, async (req: Request, res: Response) => {
+router.delete('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const id = req.params.id;
 

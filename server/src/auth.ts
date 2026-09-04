@@ -7,7 +7,7 @@ import crypto from 'node:crypto';
 import { authenticateToken, AuthenticatedRequest } from './authenticateToken';
 import { resend } from './resend';
 
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 
 const router = Router();
 
@@ -46,7 +46,7 @@ export async function hashPassword(password: string) {
   return hash;
 }
 
-router.post('/account-delete', authenticateToken, async (req: Request, res: Response) => {
+router.post('/account-delete', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
   console.log('got account delete request: ', reqData);
@@ -90,7 +90,7 @@ router.post('/account-delete', authenticateToken, async (req: Request, res: Resp
   res.json({status: 'ok', message: 'the account was deleted'});
 });
 
-router.post('/password-change', authenticateToken, async (req: Request, res: Response) => {
+router.post('/password-change', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
   console.log('got password change request: ', reqData);
@@ -136,7 +136,7 @@ router.post('/password-change', authenticateToken, async (req: Request, res: Res
   res.json({status: 'ok', message: 'the password was changed'});
 });
 
-router.patch('/email-change', authenticateToken, async (req: Request, res: Response) => {
+router.patch('/email-change', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
   
@@ -323,7 +323,7 @@ router.post('/login', async (req: Request, res: Response) => {
   }
 
   // generate json web token
-  const payload = {userid: userid, email: email};
+  const payload = {userId: userid, email: email};
   const secret = process.env.JWT_SECRET as string;
   const token = jwt.sign(payload, secret, {expiresIn: '1h'});
   
