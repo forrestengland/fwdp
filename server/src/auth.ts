@@ -333,6 +333,11 @@ router.post('/login', async (req: Request, res: Response) => {
 // user dash message
 router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
+  if (!req.user) {
+    res.json({status: 'failed', message: 'error, not logged in'});
+    return;
+  }
+
   let openItems = 0;
   try {
     const result = await pool.query('SELECT count(*) AS count FROM todos WHERE user_id = $1 AND completed = false ', [req.user.userId]);
