@@ -140,6 +140,31 @@ router.post('/new-list', authenticateToken, async (req: AuthenticatedRequest, re
   res.json({ status: 'success', list: list});
 });
 
+router.delete('/lists/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  const id = req.params.id;
+
+  console.log('got list delete:',id);
+
+  if (!req.user) {
+    res.json({status: 'failure', message: 'are you logged in?'});
+    return;
+  }
+  
+  const user_id = req.user.userId;
+  
+  try {
+    const response = await pool.query('DELETE FROM todo_lists WHERE id = $1 AND user_id = $2', [id, user_id]);
+  } catch (e: unknown) {
+    console.log('error deleting list: ', e);
+    res.json({status: 'failure', message: 'error deleting todo'});
+    return;
+  }
+
+  res.json({status: 'ok', message: 'the list was deleted'});
+  
+});
+
 router.patch('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const id = req.params.id;

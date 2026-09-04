@@ -21,8 +21,45 @@ export default function Todos() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const [lists, setLists] = useState<TodoItem[]>([]);
   const [view, setView] = useState('all');
+  const [listId, setListId] = useState('default');
   const navigate = useNavigate();
   const { loading, token, logout } = useAuth();
+
+  function defaultListClicked() {
+    console.log('default list clicked');
+    setListId('default');
+  }
+
+  function listClicked(id: string) {
+    setListId(id);
+  }
+
+  async function listDeleteClicked(id: string) {
+
+    console.log(`delete list ${id} requested`);
+
+    const apiArgs = {
+      uri: `/api/todos/lists/${id}`,
+      method: 'DELETE',
+      data: null,
+      token: token,
+      logout: logout
+    };
+
+    let responseData = null;
+
+    try {
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      const msg = 'error deleting list';
+      console.log(msg, e);
+      setMessage(msg);
+      return;
+    }
+      
+    console.log('got list delete response: ', responseData);
+    fetchLists();
+  }
 
   async function fetchLists() {
 
@@ -33,7 +70,7 @@ export default function Todos() {
       method: 'GET',
       token: token,
       data: null,
-      logout: logout,
+      logout: logout
     };
 
     let responseData = null;
@@ -258,11 +295,18 @@ export default function Todos() {
 	  </form>
 	</div>
 
+	  <div key="default" onClick={defaultListClicked} className={listId == 'default' ? "todo-container-selected" : "todo-container"}>
+	    <div>
+	      <span>Default</span>
+	    </div>
+	  </div>
+
 	  {lists.map((list) => (
-	  <div key={list.id} className="todo-container">
+	    <div key={list.id} className={listId == list.id ? "todo-container-selected" : "todo-container"} onClick={() => listClicked(list.id)}>
 	    <div>
 	      <span>{list.title}</span>
 	    </div>
+	    <button onClick={() => listDeleteClicked(list.id)}>🗑️</button>
 	  </div>
 	  ))}
 	</div>

@@ -91,7 +91,7 @@ body {
 }
 
 /* todo list stuff */
-.todo-container {
+.todo-container, .todo-container-selected {
     border: 1px solid #aaa;
     padding: 1em 1em 1em 1em;
     margin-bottom: 1em;
@@ -99,6 +99,10 @@ body {
     justify-content: space-between;
     align-items: center;
 /*    width: 100%; */
+}
+
+.todo-container-selected {
+    background-color: #aaa;
 }
 
 .todo-container div {
