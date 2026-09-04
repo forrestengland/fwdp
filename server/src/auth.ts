@@ -330,9 +330,24 @@ router.post('/login', async (req: Request, res: Response) => {
   res.json({status: 'ok', token: token});
 });
 
-// user message
+// user dash message
 router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
-  res.json({status: 'ok', message: `hello ${req.user?.email}, you are authenticated`});
+
+  let openItems = 0;
+  try {
+    const result = await pool.query('SELECT count(*) AS count FROM todos WHERE user_id = $1 AND completed = false ', [req.user.userId]);
+    if (result.rows.length != 1) {
+      res.json({status: 'failed', message: 'error getting todo count'});
+      return;
+    }
+    openItems = result.rows[0].count;
+  } catch (error: unknown) {
+    console.log('error checking incomplete todo items:', error);
+    res.json({status: 'failed', message: 'error getting todo count'});
+    return;
+  }
+  
+  res.json({status: 'ok', message: `hello ${req.user?.email}, you have ${openItems} incomplete todos`});
 });
 
 export default router;

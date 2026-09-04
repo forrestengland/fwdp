@@ -6,6 +6,8 @@ interface TodoItem {
   id: string;
   title: string;
   completed: boolean;
+  created_at: string;
+  completed_at: string;
 }
 
 export default function Todos() {
@@ -15,6 +17,11 @@ export default function Todos() {
   const [todos, setTodos] = useState<TodoItem[]>([]);
   const navigate = useNavigate();
   const { loading, token } = useAuth();
+
+  const dateFormatter = new Intl.DateTimeFormat('en-US', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  });
 
   async function fetchTodos() {
 
@@ -44,6 +51,7 @@ export default function Todos() {
     }
 
     console.log('got todos: ', resData);
+
     setTodos(resData.todos);
   }
 
@@ -172,6 +180,8 @@ export default function Todos() {
 	    <div>
 	      <input className="todo-toggle" type="checkbox" checked={todo.completed} onChange={(e) => todoCompletionChanged(todo.id, e)} />
 	      <span>{todo.title}</span>
+	      <span>Created: {dateFormatter.format(new Date(todo.created_at))}</span>
+	      {todo.completed && <span>Completed: {dateFormatter.format(new Date(todo.completed_at))}</span>}
 	    </div>
 	    <button onClick={() => todoDeleteClicked(todo.id)}>🗑️</button>
 	    </div>

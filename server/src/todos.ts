@@ -38,7 +38,7 @@ router.get('/todos', authenticateToken, async (req: AuthenticatedRequest, res: R
   let todos = [];
 
   try {
-    const response = await pool.query('SELECT id,title,completed FROM todos WHERE user_id = $1 ORDER BY created_at DESC', [user_id]);
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 ORDER BY created_at DESC', [user_id]);
     todos = response.rows;
   } catch (e: unknown) {
     console.log('error getting todos: ', e);
@@ -57,7 +57,12 @@ router.patch('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, 
   console.log('got todo completed state change:',id,completed);
   
   try {
-    const response = await pool.query('UPDATE todos SET completed = $1 WHERE id = $2', [completed, id]);
+    let response = null;
+    if (completed) {
+      response = await pool.query('UPDATE todos SET completed = true, completed_at = NOW() WHERE id = $1', [id]);
+    } else {
+      response = await pool.query('UPDATE todos SET completed = false, completed_at = NULL WHERE id = $1', [id]);
+    }
   } catch (e: unknown) {
     console.log('error updating todo completion: ', e);
     res.json({status: 'failure', message: 'error changing todo completion'});

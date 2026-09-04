@@ -45,3 +45,4 @@ CREATE TABLE todos (
 );
 CREATE INDEX idx_todos_user_id ON todos(user_id);
 GRANT ALL ON todos TO fwdp;
+ALTER TABLE todos ADD completed_at TIMESTAMPTZ;
