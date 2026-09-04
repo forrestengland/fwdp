@@ -93,8 +93,21 @@ export default function Todos() {
 
     let resData = null;
     let uri = '/api/todos/todos';
-    if (view == 'incomplete') uri = '/api/todos/todos-incomplete';
-    else if (view == 'complete') uri = '/api/todos/todos-complete';
+    if (listId != 'default') {
+      uri = `/api/todos/todos-from-list/${listId}`;
+      if (view == 'incomplete') {
+	uri = `/api/todos/todos-incomplete-from-list/${listId}`;
+      } else if (view == 'complete') {
+	uri = `/api/todos/todos-complete-from-list/${listId}`;
+      }
+    } else {
+      // incomplete default todos
+      if (view == 'incomplete') {
+	uri = '/api/todos/todos-incomplete';
+      } else if (view == 'complete') { // complete default todos
+	uri = '/api/todos/todos-complete';
+      }
+    }
 
     try {
       const response = await fetch(uri,{
@@ -248,7 +261,7 @@ export default function Todos() {
 	  'Authorization': `Bearer ${token}`,
 	  'Content-Type': 'application/json'
 	},
-	body: JSON.stringify({title: newTitle})
+	body: JSON.stringify({title: newTitle, list: listId})
       });
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
@@ -281,6 +294,10 @@ export default function Todos() {
   useEffect(() => {
     fetchTodos();
   }, [view]);
+
+  useEffect(() => {
+    fetchTodos();
+  }, [listId]);
 
   return (
     <div className="todo-container-main">

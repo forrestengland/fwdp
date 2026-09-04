@@ -6,6 +6,9 @@ const router = Router();
 
 router.post('/todos-new', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
+  const listId = req.body.list;
+  console.log('listId: ', listId);
+  
   if (!req.user) {
     res.json({status: 'failed', message: 'are you logged in?'});
     return;
@@ -16,7 +19,12 @@ router.post('/todos-new', authenticateToken, async (req: AuthenticatedRequest, r
   let todo_id = '';
 
   try {
-    const response = await pool.query('INSERT INTO todos (user_id,title) VALUES($1,$2) RETURNING id', [user_id,title]);
+    let response = null;
+    if (listId == 'default') {
+      response = await pool.query('INSERT INTO todos (user_id,title) VALUES($1,$2) RETURNING id', [user_id,title]);
+    } else {
+      response = await pool.query('INSERT INTO todos (user_id,title,list_id) VALUES($1,$2,$3) RETURNING id', [user_id,title,listId]);
+    }
     todo_id = response.rows[0].id;
   } catch (e: unknown) {
     console.log('error adding todo: ', e);
@@ -38,7 +46,79 @@ router.get('/todos', authenticateToken, async (req: AuthenticatedRequest, res: R
   let todos = [];
 
   try {
-    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 ORDER BY created_at DESC', [user_id]);
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND list_id IS NULL ORDER BY created_at DESC', [user_id]);
+    todos = response.rows;
+  } catch (e: unknown) {
+    console.log('error getting todos: ', e);
+    res.json({status: 'failure', message: 'error getting todos'});
+    return;
+  }
+
+  res.json({ status: 'success', todos: todos});
+});
+
+router.get('/todos-from-list/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  const list_id = req.params.id;
+
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  const user_id = req.user.userId;
+  let todos = [];
+
+  try {
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND list_id = $2 ORDER BY created_at DESC', [user_id,list_id]);
+    todos = response.rows;
+  } catch (e: unknown) {
+    console.log('error getting todos: ', e);
+    res.json({status: 'failure', message: 'error getting todos'});
+    return;
+  }
+
+  res.json({ status: 'success', todos: todos});
+});
+
+router.get('/todos-complete-from-list/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  const list_id = req.params.id;
+
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  const user_id = req.user.userId;
+  let todos = [];
+
+  try {
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND list_id = $2 AND completed = true ORDER BY created_at DESC', [user_id,list_id]);
+    todos = response.rows;
+  } catch (e: unknown) {
+    console.log('error getting todos: ', e);
+    res.json({status: 'failure', message: 'error getting todos'});
+    return;
+  }
+
+  res.json({ status: 'success', todos: todos});
+});
+
+router.get('/todos-incomplete-from-list/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  const list_id = req.params.id;
+
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  const user_id = req.user.userId;
+  let todos = [];
+
+  try {
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND list_id = $2 AND completed = false ORDER BY created_at DESC', [user_id,list_id]);
     todos = response.rows;
   } catch (e: unknown) {
     console.log('error getting todos: ', e);
