@@ -4,7 +4,7 @@ import { useAuth } from './AuthContext';
 export default function Dashboard() {
 
   const [message, setMessage] = useState('');
-  const { user, token, loading } = useAuth();
+  const { user, token, loading, logout } = useAuth();
 
   async function fetchMessage() {
 
@@ -21,6 +21,7 @@ export default function Dashboard() {
 
 	if (response.status == 401 || response.status == 403) {
 	  throw new Error('Session expired. please log in again');
+	  logout();
 	}
 
 	const result = await response.json();

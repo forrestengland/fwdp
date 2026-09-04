@@ -114,3 +114,21 @@ body {
 .todo-view-option span {
     margin: 1em;
 }
+
+.todo-container-main {
+    display: flex;
+    gap: 1em;
+}
+
+.todo-container-lists {
+    width: 400px;
+}
+
+.todo-container-todos {
+    flex: 1;
+}
+
+.todo-lists {
+/*    border: 1px solid #aaa;
+    height: 100%; */
+}

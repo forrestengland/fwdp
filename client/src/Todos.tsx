@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
 import { useAuth } from './AuthContext';
+import apiCall from './Api.tsx'
 
 interface TodoItem {
   id: string;
@@ -16,10 +17,38 @@ export default function Todos() {
 
   const [message, setMessage] = useState('');
   const [newTitle, setNewTitle] = useState('');
+  const [newListTitle, setNewListTitle] = useState('');
   const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [lists, setLists] = useState<TodoItem[]>([]);
   const [view, setView] = useState('all');
   const navigate = useNavigate();
-  const { loading, token } = useAuth();
+  const { loading, token, logout } = useAuth();
+
+  async function fetchLists() {
+
+    console.log('fetching lists');
+
+    const apiArgs = {
+      uri: '/api/todos/lists',
+      method: 'GET',
+      token: token,
+      data: null,
+      logout: logout,
+    };
+
+    let responseData = null;
+
+    try {
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      console.log('error getting lists: ', e);
+      setMessage('error getting lists');
+      return;
+    }
+      
+    console.log('got lists: ', responseData);
+    setLists(responseData.lists);
+  }
 
   async function fetchTodos() {
 
@@ -40,6 +69,7 @@ export default function Todos() {
 
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
+	logout();
 	return;
       }
 
@@ -59,19 +89,16 @@ export default function Todos() {
   function viewAllClicked() {
     console.log('view all clicked');
     setView('all');
-    //    fetchTodos();
   }
 
   function viewIncompleteClicked() {
     console.log('view incomplete clicked');
     setView('incomplete');
-    //    fetchTodos();
   }
 
   function viewCompleteClicked() {
     console.log('view complete clicked');
     setView('complete');
-    //    fetchTodos();
   }
 
   async function todoCompletionChanged(id: string, e: React.ChangeEvent<HTMLInputElement>) {
@@ -91,6 +118,7 @@ export default function Todos() {
       });
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
+	logout();
 	navigate('/');
 	return;
       }
@@ -102,7 +130,6 @@ export default function Todos() {
 
     console.log('todo completion toggled: ', checked);
     fetchTodos();
-    //    setMessage('ToDo updated successfully');
   }
 
   async function todoDeleteClicked(id: string) {
@@ -119,6 +146,7 @@ export default function Todos() {
       });
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
+	logout();
 	navigate('/');
 	return;
       }
@@ -131,12 +159,39 @@ export default function Todos() {
 
     if (reqData.status == 'ok') {
       console.log('todo deleted');
-      //      setMessage('ToDo deleted successfully');
       fetchTodos();
     } else {
       console.log('todo deletion not ok');
       setMessage(reqData.message);
     }
+  }
+
+  async function newListClicked(e) {
+
+    e.preventDefault();
+
+    console.log('new list clicked');
+
+    const apiArgs = {
+      uri: '/api/todos/new-list',
+      method: 'POST',
+      token: token,
+      data: {title: newListTitle},
+      logout: logout,
+    };
+
+    let responseData = null;
+
+    try {
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      console.log('error creating list: ', e);
+      setMessage('error creating list');
+      return;
+    }
+
+    console.log('new list created:', responseData);
+    fetchLists();
   }
 
   async function newTodoClicked(e: FormEvent) {
@@ -160,6 +215,7 @@ export default function Todos() {
       });
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
+	logout();
 	return;
       }
       resData = await response.json();
@@ -179,6 +235,7 @@ export default function Todos() {
       if (!token) {
 	navigate('/');
       } else {
+	fetchLists();
 	fetchTodos();
       }
     }
@@ -189,7 +246,28 @@ export default function Todos() {
   }, [view]);
 
   return (
-    <>
+    <div className="todo-container-main">
+      <div className="todo-container-lists">
+	<h2>Lists</h2>
+	<div className="todo-lists">
+	<div className="message-container">
+	  <form onSubmit={(e) => newListClicked(e)}>
+	  <label>New: </label>
+	  <input type="text" onChange={(e) => setNewListTitle(e.currentTarget.value)} value={newListTitle} />
+	    <button type="submit" className="button-inline">Create</button>
+	  </form>
+	</div>
+
+	  {lists.map((list) => (
+	  <div key={list.id} className="todo-container">
+	    <div>
+	      <span>{list.title}</span>
+	    </div>
+	  </div>
+	  ))}
+	</div>
+      </div>
+      <div className="todo-container-todos">
       {message && <div className="message-container">{message}</div>}
       <h1>To Do List</h1>
       <div className="todo-view-option">
@@ -219,6 +297,7 @@ export default function Todos() {
 	    </div>
 	))}
       </div>
-    </>
+      </div>
+    </div>
   );
 }

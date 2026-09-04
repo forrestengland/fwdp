@@ -93,6 +93,53 @@ router.get('/todos-complete', authenticateToken, async (req: AuthenticatedReques
   res.json({ status: 'success', todos: todos});
 });
 
+router.get('/lists', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  const user_id = req.user.userId;
+  let lists = [];
+
+  try {
+    const response = await pool.query('SELECT id,title,created_at FROM todo_lists WHERE user_id = $1 ORDER BY created_at DESC', [user_id]);
+    lists = response.rows;
+  } catch (e: unknown) {
+    console.log('error getting lists: ', e);
+    res.json({status: 'failure', message: 'error getting lists'});
+    return;
+  }
+
+  res.json({ status: 'success', lists: lists});
+});
+
+router.post('/new-list', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  console.log(req.body);
+
+  const user_id = req.user.userId;
+  const title = req.body.title
+  let list = null;
+
+  try {
+    const response = await pool.query('INSERT INTO todo_lists (title,user_id) VALUES($1,$2) RETURNING id,created_at', [title,user_id]);
+    list = response.rows[0];
+  } catch (e: unknown) {
+    console.log('error creating list: ', e);
+    res.json({status: 'failure', message: 'error creating list'});
+    return;
+  }
+
+  res.json({ status: 'success', list: list});
+});
+
 router.patch('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const id = req.params.id;

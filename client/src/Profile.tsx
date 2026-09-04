@@ -36,6 +36,7 @@ export default function Profile() {
       resData = await response.json();
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
+	logout();
 	return;
       }
     } catch (error: unknown) {
@@ -67,6 +68,7 @@ export default function Profile() {
       resData = await response.json();
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
+	logout();
 	return;
       }
     } catch (error: unknown) {
@@ -98,6 +100,7 @@ export default function Profile() {
       });
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
+	logout();
 	return;
       }
       resData = await response.json();

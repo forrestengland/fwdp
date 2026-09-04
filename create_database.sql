@@ -46,3 +46,13 @@ CREATE TABLE todos (
 CREATE INDEX idx_todos_user_id ON todos(user_id);
 GRANT ALL ON todos TO fwdp;
 ALTER TABLE todos ADD completed_at TIMESTAMPTZ;
+
+-- create lists table (groups of todos)
+CREATE TABLE todo_lists (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       title TEXT NOT NULL,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+ALTER TABLE todos ADD list_id UUID REFERENCES todo_lists(id);
+ALTER TABLE todo_lists ADD user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
+GRANT ALL ON todo_lists TO fwdp;
