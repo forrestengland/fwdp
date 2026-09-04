@@ -59,7 +59,7 @@ export default function Todos() {
       
     console.log('got list delete response: ', responseData);
     fetchLists();
-    fetchTodos();
+    setListId('default');
   }
 
   async function fetchLists() {
