@@ -140,7 +140,7 @@ router.get('/todos-incomplete', authenticateToken, async (req: AuthenticatedRequ
   let todos = [];
 
   try {
-    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND completed = false ORDER BY created_at DESC', [user_id]);
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND completed = false AND list_id IS NULL ORDER BY created_at DESC', [user_id]);
     todos = response.rows;
   } catch (e: unknown) {
     console.log('error getting todos: ', e);
@@ -162,7 +162,7 @@ router.get('/todos-complete', authenticateToken, async (req: AuthenticatedReques
   let todos = [];
 
   try {
-    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND completed = true ORDER BY created_at DESC', [user_id]);
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND completed = true AND list_id IS NULL ORDER BY created_at DESC', [user_id]);
     todos = response.rows;
   } catch (e: unknown) {
     console.log('error getting todos: ', e);

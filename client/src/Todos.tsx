@@ -93,8 +93,12 @@ export default function Todos() {
     console.log('fetching todos');
 
     let resData = null;
+
+    // default uri - all from default list
     let uri = '/api/todos/todos';
+    
     if (listId != 'default') {
+      // not default list - request from list - all view
       uri = `/api/todos/todos-from-list/${listId}`;
       if (view == 'incomplete') {
 	uri = `/api/todos/todos-incomplete-from-list/${listId}`;
