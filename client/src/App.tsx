@@ -1,8 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { BrowserRouter, Routes, Route, Link, useNavigate, useLocation } from 'react-router-dom';
-import reactLogo from './assets/react.svg';
-import viteLogo from './assets/vite.svg';
-import heroImg from './assets/hero.png';
+import { jwtDecode } from 'jwt-decode';
+
 import './App.css';
 
 import Navigation from './Navigation';
@@ -20,11 +19,27 @@ function App() {
 
   const [token, setToken] = useState('');
   const [username, setUsername] = useState('Guest');
+  const [loading, setLoading] = useState(true);
 
   function loginStateChange(user) {
     setToken(localStorage.getItem('token'));
     setUsername(user);
   }
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    if (token) {
+      try {
+	const decoded = jwtDecode(token);
+	const userEmail = decoded.email;
+	setUsername(userEmail)
+	setToken(token);
+      } catch (error) {
+	console.log('invalid token structure:', error);
+      }
+    }
+    setLoading(false);
+  }, []);
 
   return (
     <>
@@ -41,7 +56,7 @@ function App() {
 	  <Route path="/logout" element={<Logout onLogout={loginStateChange} token={token} />} />	  
 	  <Route path="/profile" element={<Profile user={username} token={token} onLogout={loginStateChange} />} />
 
-	  <Route path="/todo" element={<Todos token={token} />} />
+	  <Route path="/todo" element={<Todos token={token} loading={loading}/>} />
 
 	</Routes>
       </BrowserRouter>

@@ -3,9 +3,10 @@ import { useNavigate } from 'react-router-dom';
 
 interface TodosProps {
   token: string;
+  loading: boolean;
 }
 
-export default function Todos({ token }: TodosProps) {
+export default function Todos({ token, loading }: TodosProps) {
 
   const [message, setMessage] = useState('');
   const [newTitle, setNewTitle] = useState('');
@@ -70,7 +71,7 @@ export default function Todos({ token }: TodosProps) {
     }
 
     console.log('todo completion toggled: ', checked);
-    setMessage('ToDo updated successfully');
+    //    setMessage('ToDo updated successfully');
   }
 
   async function todoDeleteClicked(id: string) {
@@ -99,7 +100,7 @@ export default function Todos({ token }: TodosProps) {
 
     if (reqData.status == 'ok') {
       console.log('todo deleted');
-      setMessage('ToDo deleted successfully');
+      //      setMessage('ToDo deleted successfully');
       fetchTodos();
     } else {
       console.log('todo deletion not ok');
@@ -138,7 +139,7 @@ export default function Todos({ token }: TodosProps) {
     }
 
     console.log('todo created: ', resData);
-    setMessage('ToDo created successfully');
+    //    setMessage('ToDo created successfully');
     fetchTodos();
   }
 
@@ -147,10 +148,12 @@ export default function Todos({ token }: TodosProps) {
   }, []);  
 
   useEffect(() => {
-    if (!token) {
-      navigate('/');
+    if (!loading) {
+      if (!token) {
+	navigate('/');
+      }
     }
-  }, [token]);
+  }, [loading]);
 
   return (
     <>
