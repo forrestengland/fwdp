@@ -49,6 +49,50 @@ router.get('/todos', authenticateToken, async (req: AuthenticatedRequest, res: R
   res.json({ status: 'success', todos: todos});
 });
 
+router.get('/todos-incomplete', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  const user_id = req.user.userId;
+  let todos = [];
+
+  try {
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND completed = false ORDER BY created_at DESC', [user_id]);
+    todos = response.rows;
+  } catch (e: unknown) {
+    console.log('error getting todos: ', e);
+    res.json({status: 'failure', message: 'error getting todos'});
+    return;
+  }
+
+  res.json({ status: 'success', todos: todos});
+});
+
+router.get('/todos-complete', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  if (!req.user) {
+    res.json({status: 'failed', message: 'are you logged in?'});
+    return;
+  }
+
+  const user_id = req.user.userId;
+  let todos = [];
+
+  try {
+    const response = await pool.query('SELECT id,title,completed,created_at,completed_at FROM todos WHERE user_id = $1 AND completed = true ORDER BY created_at DESC', [user_id]);
+    todos = response.rows;
+  } catch (e: unknown) {
+    console.log('error getting todos: ', e);
+    res.json({status: 'failure', message: 'error getting todos'});
+    return;
+  }
+
+  res.json({ status: 'success', todos: todos});
+});
+
 router.patch('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const id = req.params.id;

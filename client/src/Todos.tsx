@@ -1,5 +1,7 @@
 import { useState, useEffect, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { formatDistanceToNow, parseISO } from 'date-fns';
+
 import { useAuth } from './AuthContext';
 
 interface TodoItem {
@@ -15,22 +17,21 @@ export default function Todos() {
   const [message, setMessage] = useState('');
   const [newTitle, setNewTitle] = useState('');
   const [todos, setTodos] = useState<TodoItem[]>([]);
+  const [view, setView] = useState('all');
   const navigate = useNavigate();
   const { loading, token } = useAuth();
-
-  const dateFormatter = new Intl.DateTimeFormat('en-US', {
-    dateStyle: 'medium',
-    timeStyle: 'short'
-  });
 
   async function fetchTodos() {
 
     console.log('fetching todos');
 
     let resData = null;
+    let uri = '/api/todos/todos';
+    if (view == 'incomplete') uri = '/api/todos/todos-incomplete';
+    else if (view == 'complete') uri = '/api/todos/todos-complete';
 
     try {
-      const response = await fetch('/api/todos/todos',{
+      const response = await fetch(uri,{
 	method: 'GET',
 	headers: {
 	  'Authorization': `Bearer ${token}`
@@ -53,6 +54,24 @@ export default function Todos() {
     console.log('got todos: ', resData);
 
     setTodos(resData.todos);
+  }
+
+  function viewAllClicked() {
+    console.log('view all clicked');
+    setView('all');
+    //    fetchTodos();
+  }
+
+  function viewIncompleteClicked() {
+    console.log('view incomplete clicked');
+    setView('incomplete');
+    //    fetchTodos();
+  }
+
+  function viewCompleteClicked() {
+    console.log('view complete clicked');
+    setView('complete');
+    //    fetchTodos();
   }
 
   async function todoCompletionChanged(id: string, e: React.ChangeEvent<HTMLInputElement>) {
@@ -151,7 +170,7 @@ export default function Todos() {
     }
 
     console.log('todo created: ', resData);
-    //    setMessage('ToDo created successfully');
+    setNewTitle('');
     fetchTodos();
   }
 
@@ -165,25 +184,38 @@ export default function Todos() {
     }
   }, [loading]);
 
+  useEffect(() => {
+    fetchTodos();
+  }, [view]);
+
   return (
     <>
       {message && <div className="message-container">{message}</div>}
       <h1>To Do List</h1>
+      <div className="todo-view-option">
+	{view == 'all' ? <span>All</span> : <a href="#" onClick={viewAllClicked}>All</a>}
+	{view == 'incomplete' ? <span>Incomplete</span> : <a href="#" onClick={viewIncompleteClicked}>Incomplete</a>}
+	{view == 'complete' ? <span>Complete</span> : <a href="#" onClick={viewCompleteClicked}>Complete</a>}
+      </div>
       <div className="content-main">
 	<div className="message-container">
+	  <form onSubmit={newTodoClicked}>
 	  <label>New: </label>
-	  <input type="text" onChange={(e) => setNewTitle(e.currentTarget.value)} />
-	  <button type="submit" onClick={newTodoClicked} className="button-inline">Create</button>
+	  <input type="text" onChange={(e) => setNewTitle(e.currentTarget.value)} value={newTitle} />
+	    <button type="submit" className="button-inline">Create</button>
+	  </form>
 	</div>
 	{todos.map((todo) => (
 	  <div key={todo.id} className="todo-container">
 	    <div>
 	      <input className="todo-toggle" type="checkbox" checked={todo.completed} onChange={(e) => todoCompletionChanged(todo.id, e)} />
 	      <span>{todo.title}</span>
-	      <span>Created: {dateFormatter.format(new Date(todo.created_at))}</span>
-	      {todo.completed && <span>Completed: {dateFormatter.format(new Date(todo.completed_at))}</span>}
 	    </div>
-	    <button onClick={() => todoDeleteClicked(todo.id)}>🗑️</button>
+	    <div>
+		{todo.completed && <span>Completed {formatDistanceToNow(parseISO(todo.completed_at))} ago - </span>}	      
+	      <span>Created {formatDistanceToNow(parseISO(todo.created_at))} ago</span>
+	      <button onClick={() => todoDeleteClicked(todo.id)}>🗑️</button>
+	    </div>
 	    </div>
 	))}
       </div>
