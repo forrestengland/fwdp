@@ -1,17 +1,19 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-interface LoginFormProps {
-  onLogin: (user) => {};
-}
-
-export default function LoginForm({ onLogin }: LoginFormProps) {
+export default function LoginForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+  const { login } = useAuth();
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // find out if they were redirected here trying to access a protected page
+  const from = location.state?.from?.pathname || "/dash";
 
   // handle submission of the login form
   function handleSubmit(e: FormEvent) {
@@ -38,12 +40,9 @@ export default function LoginForm({ onLogin }: LoginFormProps) {
 	setMessage('account login successful');
 
 	console.log('got token: ', data.token);
-	localStorage.setItem('token', data.token);
+	login(data.token);
+	navigate(from, {replace:true});
 
-	onLogin(email);
-
-	navigate('/dash');
-	
       } else {
 	setMessage('failed to login');
       }

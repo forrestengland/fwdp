@@ -1,14 +1,9 @@
 /* profile page - edit email, name, picture, delete profile */
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-interface ProfileProps {
-  user: string;
-  token: string;
-  onLogout: (user: string) => {};
-}
-
-export default function Profile({ user, token, onLogout }: ProfileProps) {
+export default function Profile() {
 
   const [message, setMessage] = useState('');
   const [email, setEmail] = useState('');
@@ -18,14 +13,15 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
   const [passwordChangeConfirm, setPasswordChangeConfirm] = useState('');
   const [passwordDeleteConfirm, setPasswordDeleteConfirm] = useState('');    
   const navigate = useNavigate();
+  const { user, token, loading, logout } = useAuth();
 
   async function confirmEmailChange(e: FormEvent) {
 
     e.preventDefault();
 
-    console.log(`confirming email change from ${user} to ${email} with password ${passwordEmailConfirm}`);
+    if (!token || !user) return;
 
-    //    const token = localStorage.getItem('token');
+    console.log(`confirming email change from ${user} to ${email} with password ${passwordEmailConfirm}`);
 
     // send the email change request to the api server
     let resData = null;
@@ -36,7 +32,7 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
 	  'Authorization': `Bearer ${token}`,
 	  'Content-Type': 'application/json'
 	},
-	body: JSON.stringify({email: user, password: passwordEmailConfirm, email_new: email})
+	body: JSON.stringify({email: user.email, password: passwordEmailConfirm, email_new: email})
       });
       resData = await response.json();
       if (response.status == 401 || response.status == 403) {
@@ -57,7 +53,7 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
 
     console.log(`confirming password change`);
 
-    //    const token = localStorage.getItem('token');
+    if (!token || !user) return;
     
     let resData = null;
     try {
@@ -67,7 +63,7 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
 	  'Authorization': `Bearer ${token}`,
 	  'Content-Type': 'application/json'
 	},
-	body: JSON.stringify({ email: user, password: passwordChangeConfirm, new_password: newPassword })
+	body: JSON.stringify({ email: user.email, password: passwordChangeConfirm, new_password: newPassword })
       });
       resData = await response.json();
       if (response.status == 401 || response.status == 403) {
@@ -89,7 +85,7 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
 
     console.log('confirming account deletion');
 
-    //    const token = localStorage.getItem('token');
+    if (!token || !user) return;
     
     let resData = null;
     try {
@@ -99,7 +95,7 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
 	  'Authorization': `Bearer ${token}`,
 	  'Content-Type': 'application/json'
 	},
-	body: JSON.stringify({ email: user, password: passwordDeleteConfirm })
+	body: JSON.stringify({ email: user.email, password: passwordDeleteConfirm })
       });
       if (response.status == 401 || response.status == 403) {
 	setMessage('Session expired. please log in again');
@@ -115,24 +111,12 @@ export default function Profile({ user, token, onLogout }: ProfileProps) {
     setMessage(resData.message);
 
     // account was deleted, log them out
-    localStorage.removeItem('token');
-    onLogout('Guest');
+    logout();
+    //    localStorage.removeItem('token');
+    //    onLogout('Guest');
     navigate('/');
     
   }  
-
-  useEffect(() => {
-
-    //    const token = localStorage.getItem('token');
-
-    if (!token) {
-      console.log('you are not logged in');
-      navigate('/');
-      return;
-    }
-
-  }, [token]);
-
 
   return (
     <>

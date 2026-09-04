@@ -1,20 +1,23 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-interface NavigationProps {
-  token: string;
-  user: string;
-}
-
-export default function Navigation({ token, user }: NavigationProps) {
+export default function Navigation() {
 
   const [username, setUsername] = useState('Guest');
   const { pathname } = useLocation();
+  const { user, loading, token } = useAuth();
 
   // update user state text on json web token (jwt) change (logged in state)
-    useEffect(() => {
-      setUsername(user);
-    }, [user]);
+  useEffect(() => {
+    if (!loading) {
+      if (user) {
+	setUsername(user.email);
+      } else {
+	setUsername('Guest');
+      }
+    }
+  }, [loading, user]);
 
   return (
     <>

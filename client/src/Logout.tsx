@@ -1,35 +1,19 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from './AuthContext';
 
-interface LogoutProps {
-  token: string;
-  onLogout: () => {};
-}
-
-export default function Logout({ token, onLogout }: LogoutProps) {
+export default function Logout() {
 
   const [message, setMessage] = useState('');
+  const { logout } = useAuth();
 
   const navigate = useNavigate();
 
   function logoutUser() {
-    localStorage.removeItem('token');
+    logout();
     setMessage('you are logged out');
-    onLogout('Guest');
     navigate('/');
   }
-
-  useEffect(() => {
-
-    //    const token = localStorage.getItem('token');
-
-    if (!token) {
-      console.log('you are not logged in');
-      navigate('/');
-      return;
-    }
-
-  }, [token]);
 
   return (
     <>

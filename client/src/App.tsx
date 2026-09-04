@@ -4,6 +4,9 @@ import { jwtDecode } from 'jwt-decode';
 
 import './App.css';
 
+import {AuthProvider} from './AuthContext';
+import {ProtectedRoute} from './ProtectedRoute';
+
 import Navigation from './Navigation';
 import ServerHealth from './ServerHealth.tsx';
 import RegisterForm from './RegisterForm.tsx';
@@ -44,21 +47,23 @@ function App() {
   return (
     <>
       <BrowserRouter>
-	<Navigation token={token} user={username} />
-	<Routes>
-	  <Route path="/" element={<Landing />} />	  	  
-	  <Route path="/register" element={<RegisterForm />} />
-	  <Route path="/login" element={<LoginForm onLogin={loginStateChange} />} />
-	  <Route path="/email-verified" element={<EmailVerified />} />	  
-	  <Route path="/health" element={<ServerHealth />} />
+	<AuthProvider>
+	  <Navigation token={token} user={username} />
+	  <Routes>
+	    <Route path="/" element={<Landing />} />	  	  
+	    <Route path="/register" element={<RegisterForm />} />
+	    <Route path="/login" element={<LoginForm onLogin={loginStateChange} />} />
+	    <Route path="/email-verified" element={<EmailVerified />} />	  
+	    <Route path="/health" element={<ServerHealth />} />
 	  
-	  <Route path="/dash" element={<Dashboard token={token} />} />
-	  <Route path="/logout" element={<Logout onLogout={loginStateChange} token={token} />} />	  
-	  <Route path="/profile" element={<Profile user={username} token={token} onLogout={loginStateChange} />} />
+	    <Route path="/dash" element={<ProtectedRoute><Dashboard token={token} /></ProtectedRoute>} />
+	    <Route path="/logout" element={<ProtectedRoute><Logout onLogout={loginStateChange} token={token} /></ProtectedRoute>} />	  
+	    <Route path="/profile" element={<ProtectedRoute><Profile user={username} token={token} onLogout={loginStateChange} /></ProtectedRoute>} />
 
-	  <Route path="/todo" element={<Todos token={token} loading={loading}/>} />
+	    <Route path="/todo" element={<ProtectedRoute><Todos token={token} loading={loading}/></ProtectedRoute>} />
 
-	</Routes>
+	  </Routes>
+	</AuthProvider>
       </BrowserRouter>
     </>
   );
