@@ -130,11 +130,11 @@ export default function Profile() {
 	    <form>
 	    <div className="form-row">
 	      <label>Change email:</label>
-	      <input type="text" onChange={(e) => setEmail(e.target.value)} />
+	      <input type="text" name="newEmail" onChange={(e) => setEmail(e.target.value)} />
 	    </div>
 	      <div className="form-row">
 		<label>Enter password to confirm:</label>
-		<input type="password" onChange={(e) => setPasswordEmailConfirm(e.target.value)} />
+		<input type="password" autoComplete="new-password" onChange={(e) => setPasswordEmailConfirm(e.target.value)} />
 		<button type="submit" className="button-inline" onClick={confirmEmailChange}>Confirm</button>
 	      </div>
 
@@ -146,7 +146,7 @@ export default function Profile() {
 	    <form>
 	    <div className="form-row">
 	      <label>Change password:</label>
-	      <input type="password" onChange={(e) => setNewPassword(e.target.value)} />
+	      <input type="password" autoComplete="new-password" onChange={(e) => setNewPassword(e.target.value)} />
 	    </div>
 	      <div className="form-row">
 		<label>Enter old password to confirm:</label>
@@ -161,7 +161,7 @@ export default function Profile() {
 	    <form>
 	      <div className="form-row">
 		<label>Enter old password to confirm:</label>
-		<input type="password" onChange={(e) => setPasswordDeleteConfirm(e.target.value)} />
+		<input type="password" autoComplete="new-password" onChange={(e) => setPasswordDeleteConfirm(e.target.value)} />
 		<button type="submit" className="button-inline" onClick={confirmDeleteAccount}>Confirm</button>
 	      </div>
 	    </form>

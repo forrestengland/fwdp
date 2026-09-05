@@ -1,4 +1,4 @@
-import { useState, useEffect, type FormEvent } from 'react';
+import { useState, useEffect, useRef, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
@@ -22,8 +22,55 @@ export default function Todos() {
   const [lists, setLists] = useState<TodoItem[]>([]);
   const [view, setView] = useState('all');
   const [listId, setListId] = useState('default');
+  const [todoEditId, setTodoEditId] = useState('');
+  const [todoEditTitle, setTodoEditTitle] = useState('');
   const navigate = useNavigate();
   const { loading, token, logout } = useAuth();
+  const todoTitleEditRef = useRef(null);
+
+  async function submitTodoEditTitle() {
+
+    console.log(`submiting todo edit title ${todoEditTitle} for todo ${todoEditId}`);
+
+    const apiArgs = {
+      uri: `/api/todos/edit-title`,
+      method: 'PATCH',
+      data: {id: todoEditId, title: todoEditTitle},
+      token: token,
+      logout: logout
+    };
+
+    let responseData = null;
+
+    try {
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      const msg = 'error updating title';
+      console.log(msg, e);
+      setMessage(msg);
+      return;
+    }
+      
+    console.log('got todo title patch response: ', responseData);
+    setTodoEditId('');
+    fetchTodos();
+  }
+
+  function handleTodoEditKeydown(event) {
+    if (event.key == 'Enter') {
+      event.preventDefault();
+      submitTodoEditTitle();
+    }
+  }
+
+  function todoEditTitleChanged(title) {
+    setTodoEditTitle(title);
+  }
+
+  function todoEditClicked(id: string) {
+    console.log(`todo edit clicked ${id}`);
+    setTodoEditId(id);
+  }
 
   function defaultListClicked() {
     console.log('default list clicked');
@@ -98,8 +145,10 @@ export default function Todos() {
     let uri = '/api/todos/todos';
     
     if (listId != 'default') {
+      
       // not default list - request from list - all view
       uri = `/api/todos/todos-from-list/${listId}`;
+      
       if (view == 'incomplete') {
 	uri = `/api/todos/todos-incomplete-from-list/${listId}`;
       } else if (view == 'complete') {
@@ -304,6 +353,10 @@ export default function Todos() {
     fetchTodos();
   }, [listId]);
 
+  useEffect(() => {
+    if (todoTitleEditRef.current) todoTitleEditRef.current.focus();
+  }, [todoEditId]);
+
   return (
     <div className="todo-container-main">
       <div className="todo-container-lists">
@@ -312,8 +365,8 @@ export default function Todos() {
 	<div className="message-container">
 	  <form onSubmit={(e) => newListClicked(e)}>
 	  <label>New: </label>
-	  <input type="text" onChange={(e) => setNewListTitle(e.currentTarget.value)} value={newListTitle} />
-	    <button type="submit" className="button-inline">Create</button>
+	  <input className="edit-input" type="text" onChange={(e) => setNewListTitle(e.currentTarget.value)} value={newListTitle} />
+	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
 	  </form>
 	</div>
 
@@ -328,7 +381,7 @@ export default function Todos() {
 	    <div>
 	      <span>{list.title}</span>
 	    </div>
-	    <button onClick={() => listDeleteClicked(list.id)}>🗑️</button>
+	    <button className="edit-btn" onClick={() => listDeleteClicked(list.id)}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
 	  </div>
 	  ))}
 	</div>
@@ -346,19 +399,23 @@ export default function Todos() {
 	  <form onSubmit={newTodoClicked}>
 	  <label>New: </label>
 	  <input type="text" onChange={(e) => setNewTitle(e.currentTarget.value)} value={newTitle} />
-	    <button type="submit" className="button-inline">Create</button>
+	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+
 	  </form>
 	</div>
 	{todos.map((todo) => (
 	  <div key={todo.id} className="todo-container">
 	    <div>
 	      <input className="todo-toggle" type="checkbox" checked={todo.completed} onChange={(e) => todoCompletionChanged(todo.id, e)} />
-	      <span>{todo.title}</span>
+	      {todoEditId == todo.id ?
+		<input ref={todoTitleEditRef} type="text" onChange={(e) => todoEditTitleChanged(e.currentTarget.value)} defaultValue={todo.title} onKeyDown={handleTodoEditKeydown} /> :
+		<span>{todo.title}</span>}
 	    </div>
 	    <div>
 		{todo.completed && <span>Completed {formatDistanceToNow(parseISO(todo.completed_at))} ago - </span>}	      
 	      <span>Created {formatDistanceToNow(parseISO(todo.created_at))} ago</span>
-	      <button onClick={() => todoDeleteClicked(todo.id)}>🗑️</button>
+	      <button className="edit-btn" onClick={() => todoEditClicked(todo.id)}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-pencil"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"/><path d="m15 5 4 4"/></svg></button>
+	      <button className="edit-btn" onClick={() => todoDeleteClicked(todo.id)}><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-trash"><path d="M10 11v6"/><path d="M14 11v6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
 	    </div>
 	    </div>
 	))}

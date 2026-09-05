@@ -1,3 +1,16 @@
+/* general overrides */
+h1, h2 {
+    margin: 0.2em 0;
+}
+
+body {
+    font-family: Arial, sans-serif;
+}
+
+a, a:visited {
+    color: #777
+}
+
 /* navigation */
 a {
     text-decoration: none;
@@ -64,6 +77,15 @@ a {
     margin-right: 1em;
 }
 
+.edit-input {
+    height: 1.5em;
+}
+
+.create-btn {
+    position: relative;
+    top: 0.5em;
+}
+
 /* message */
 .message-container {
 /*    border-radius: 1em; */
@@ -81,13 +103,10 @@ a {
 .user-status {
 }
 
-/* general overrides */
-h1, h2 {
-    margin: 0.2em 0;
-}
-
-body {
-    font-family: Arial, sans-serif;
+/* todo stuff */
+button.edit-btn {
+    border: none;
+    background-color: inherit;
 }
 
 /* todo list stuff */

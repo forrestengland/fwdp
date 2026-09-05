@@ -270,6 +270,27 @@ router.patch('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, 
   res.json({status: 'ok', message: 'the todo completion was updated'});
 });
 
+router.patch('/edit-title', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
+
+  const id = req.body.id;
+  const title = req.body.title;
+  const user_id = req.user?.userId;
+
+  console.log('got todo title change:',id,title);
+  
+  try {
+    let response = null;
+    response = await pool.query('UPDATE todos SET title = $1, updated_at = NOW() WHERE id = $2 AND user_id = $3', [title, id, user_id]);
+  } catch (e: unknown) {
+    const msg = 'error updating todo title';
+    console.log(msg, e);
+    res.json({status: 'failure', message: msg});
+    return;
+  }
+
+  res.json({status: 'ok', message: 'the todo title was updated'});
+});
+
 router.delete('/todos/:id', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const id = req.params.id;
