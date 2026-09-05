@@ -155,3 +155,7 @@ button.edit-btn {
 /*    border: 1px solid #aaa;
     height: 100%; */
 }
+
+.edit-container {
+    height: 2.4em;
+}

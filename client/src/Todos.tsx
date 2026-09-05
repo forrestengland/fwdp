@@ -362,9 +362,8 @@ export default function Todos() {
       <div className="todo-container-lists">
 	<h2>Lists</h2>
 	<div className="todo-lists">
-	<div className="message-container">
+	<div className="message-container edit-container">
 	  <form onSubmit={(e) => newListClicked(e)}>
-	  <label>New: </label>
 	  <input className="edit-input" type="text" onChange={(e) => setNewListTitle(e.currentTarget.value)} value={newListTitle} />
 	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
 	  </form>
@@ -395,10 +394,9 @@ export default function Todos() {
 	{view == 'complete' ? <span>Complete</span> : <a href="#" onClick={viewCompleteClicked}>Complete</a>}
       </div>
       <div className="content-main">
-	<div className="message-container">
+	<div className="message-container edit-container">
 	  <form onSubmit={newTodoClicked}>
-	  <label>New: </label>
-	  <input type="text" onChange={(e) => setNewTitle(e.currentTarget.value)} value={newTitle} />
+	  <input type="text" className="edit-input" onChange={(e) => setNewTitle(e.currentTarget.value)} value={newTitle} />
 	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
 
 	  </form>
