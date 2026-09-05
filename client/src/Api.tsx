@@ -7,9 +7,11 @@ interface ApiCallArgs {
   login: (token: string) => void;
 }
 
-export async function refreshToken(login: (token: string)=>void, logout: ()=>void) {
+let refreshPromise : Promise<string> | null = null;
 
-    // access token has expired. need to request a new one using the refreshToken and retry
+async function doRefresh(login: (token: string)=>void, logout: ()=>void) {
+
+  // access token has expired. need to request a new one using the refreshToken and retry
     console.log("access token expired. refreshing...");
 
     const refreshResponse = await fetch('/api/auth/refresh', {
@@ -31,7 +33,21 @@ export async function refreshToken(login: (token: string)=>void, logout: ()=>voi
     login(refResData.token);
 
     return refResData.token;
+}
+
+export async function refreshToken(login: (token: string)=>void, logout: ()=>void) {
+
+  if (refreshPromise) return refreshPromise;
+
+  refreshPromise = doRefresh(login, logout);
+
+  try {
+    return await refreshPromise;
+  } finally {
+    refreshPromise = null;
   }
+
+}
 
 
 export async function apiCall({ uri, method, token, data, logout, login }: ApiCallArgs) {

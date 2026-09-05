@@ -13,6 +13,30 @@ import { Router, Request, Response } from 'express';
 
 const router = Router();
 
+async function generateRefreshToken(userid: string, res: Response) {
+  
+  // generate refresh token
+  const refreshToken = crypto.randomBytes(32).toString("hex");
+  const refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
+
+  // store refresh token in db
+  try {
+    const result = await pool.query("INSERT INTO refresh_tokens (user_id,token_hash,expires_at) VALUES($1,$2, NOW() + INTERVAL '1 day')", [userid,refreshTokenHash]);
+  } catch (error: unknown) {
+    console.log('error storing refresh token:', error);
+    res.json({status: 'failed', message: 'error logging in'});
+    return;
+  }
+
+  // set the refresh token cookie
+  res.cookie("refreshToken", refreshToken, {
+    httpOnly: true,
+    secure: false,
+    sameSite: "strict",
+    path: "/api/auth"
+  });
+}
+
 // send a verification email for a new account registration
 export async function sendVerificationEmail(email: string, token: string) {
 
@@ -294,11 +318,18 @@ router.post('/register', async (req: Request, res: Response) => {
 });
 
 // user logout
-router.post('/logout', authenticateToken, (req: AuthenticatedRequest, res: Response) => {
+router.post('/logout', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
 
   console.log('logout request:',reqData);
+
+  // revoke refresh token
+  try {
+    await pool.query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL", [req.user?.user_id]);
+  } catch (e: any) {
+    return res.json({status: 'failure', message: "failed revoking stored refresh token"});
+  }  
 
   res.json({status: 'ok'});
   
@@ -345,26 +376,7 @@ router.post('/login', async (req: Request, res: Response) => {
   const secret = process.env.JWT_SECRET as string;
   const token = jwt.sign(payload, secret, {expiresIn: '1m'});
 
-  // generate refresh token
-  const refreshToken = crypto.randomBytes(32).toString("hex");
-  const refreshTokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
-
-  // store refresh token in db
-  try {
-    const result = await pool.query("INSERT INTO refresh_tokens (user_id,token_hash,expires_at) VALUES($1,$2, NOW() + INTERVAL '1 day')", [userid,refreshTokenHash]);
-  } catch (error: unknown) {
-    console.log('error storing refresh token:', error);
-    res.json({status: 'failed', message: 'error logging in'});
-    return;
-  }
-
-  // set the refresh token cookie
-  res.cookie("refreshToken", refreshToken, {
-    httpOnly: true,
-    secure: false,
-    sameSite: "strict",
-    path: "/api/auth"
-  });
+  await generateRefreshToken(userid, res);
 
   // send the success response
   res.json({status: 'ok', token: token});
@@ -375,19 +387,28 @@ router.post('/refresh', async (req: Request, res: Response) => {
 
   console.log("refresh called for new access token");
 
+  // get old refresh token
   const refreshToken = req.cookies?.refreshToken;
 
   console.log("refresh token from cookie: ", refreshToken);
 
+  // access denied if no refresh token in cookie
   if (!refreshToken) {
     return res.sendStatus(401);
   }
 
+  // hash refresh token from request to check against database
   const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
 
-  console.log("got refresh token hash: ", tokenHash);  
+  console.log("got refresh token hash: ", tokenHash);
 
-  const result = await pool.query("SELECT r.id,r.user_id,r.expires_at,r.revoked_at,u.email FROM refresh_tokens r JOIN users u ON u.id = r.user_id WHERE token_hash = $1", [tokenHash]);
+  let result = null;
+
+  try {
+    result = await pool.query("SELECT r.id,r.user_id,r.expires_at,r.revoked_at,u.email FROM refresh_tokens r JOIN users u ON u.id = r.user_id WHERE token_hash = $1", [tokenHash]);
+  } catch (e: any) {
+    return res.json({status: 'failure', message: "failed finding stored refresh token"});
+  }
 
   const token = result.rows[0];
   console.log("got refresh token from db: ", token);
@@ -396,9 +417,26 @@ router.post('/refresh', async (req: Request, res: Response) => {
     return res.sendStatus(401);
   }
 
+  // got matching refresh token from database, check if it's valid
   if (token.revoked_at || new Date(token.expires_at) <= new Date()) {
     return res.sendStatus(401);
   }
+
+  // rotate refresh token
+  let ret = null;
+  try {
+    ret = await pool.query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL RETURNING *", [token.user_id]);
+  } catch (e: any) {
+    return res.json({status: 'failure', message: "failed revoking old stored refresh token"});
+  }
+
+  // if we didn't update something, maybe concurrency issue, throw 401
+  if (!ret.rows.length) {
+    console.log("error rotating refresh token");
+    return res.sendStatus(401);
+  }
+
+  await generateRefreshToken(token.user_id, res);
 
   // generate new json web token
   const payload = {userId: token.user_id, email: token.email};
