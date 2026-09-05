@@ -24,7 +24,7 @@ export default function Logout() {
       responseData = await apiCall(apiArgs);
     } catch (e: any) {
       const msg = 'error logging out';
-      console.log(msg);
+      console.log(msg, e);
       setMessage(msg);
       return;
     }

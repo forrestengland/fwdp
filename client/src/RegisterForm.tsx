@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { apiCall } from './Api.tsx';
 
 export default function RegisterForm() {
 
@@ -6,27 +7,33 @@ export default function RegisterForm() {
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
 
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
+
     e.preventDefault();
+
     console.log(`submitting registration: email = ${email}, password = ${password}`);
-    fetch('/api/auth/register', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({email: email, password: password})
-    }).then(response => {
-      if (!response.ok) throw new Error('network response not ok');
-      return response.json();
-    }).then(data => {
-      console.log('data rxd', data);
-      if (data.status == 'ok') {
-	setMessage('account creation successful! Check your email');
-      } else {
-	setMessage('failed to create account');
-      }
-    }).catch(error => {
-      console.log('fetch error:', error);
-      setMessage('error creating account');
-    });
+
+    const apiArgs = {
+      uri: "/api/auth/register",
+      method: "POST",
+      data: {email: email, password: password}
+    };
+
+    let responseData = null;
+
+    try {
+      responseData = await apiCall(apiArgs);
+    } catch (err: any) {
+      const message = "Error registering in";
+      console.log(msg, err);
+      setMessage(message);
+    }
+    
+    if (responseData.status == 'ok') {
+      setMessage('account creation successful! Check your email');
+    } else {
+      setMessage('failed to create account');
+    }
   }
   
   return (

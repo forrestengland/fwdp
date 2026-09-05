@@ -208,24 +208,23 @@ export default function Todos() {
 
     console.log('todo completion toggled: ', id, checked);
 
+    const apiArgs = {
+      uri: `/api/todos/todos/${id}`,
+      method: "PATCH",
+      data: {completed: checked},
+      token: token,
+      logout: logout,
+      login: login
+    };
+
+    let responseData = null;
+
     try {
-      const response = await fetch(`/api/todos/todos/${id}`, {
-	method: 'PATCH',
-	headers: {
-	  'Authorization': `Bearer ${token}`,
-	  'Content-Type': 'application/json'
-	},
-	body: JSON.stringify({completed: checked})
-      });
-      if (response.status == 401 || response.status == 403) {
-	setMessage('Session expired. please log in again');
-	logout();
-	navigate('/');
-	return;
-      }
-    } catch (e: unknown) {
-      console.log('error toggling todo completion: ', e);
-      setMessage('Error toggling todo completion');
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      const message = "Error changing completion";
+      console.log(message, e);
+      setMessage(message);
       return;
     }
 
@@ -236,34 +235,31 @@ export default function Todos() {
   async function todoDeleteClicked(id: string) {
 
     console.log('todo delete clicked: ', id);
-    let reqData = null;
+
+    const apiArgs = {
+      uri: `/api/todos/todos/${id}`,
+      method: 'DELETE',
+      token: token,
+      login: login,
+      logout: logout
+    };
+
+    let responseData = null;
 
     try {
-      const response = await fetch(`/api/todos/todos/${id}`, {
-	method: 'DELETE',
-	headers: {
-	  'Authorization': `Bearer ${token}`,
-	}
-      });
-      if (response.status == 401 || response.status == 403) {
-	setMessage('Session expired. please log in again');
-	logout();
-	navigate('/');
-	return;
-      }
-      reqData = await response.json();
-    } catch (e: unknown) {
-      console.log('error deleting todo: ', e);
-      setMessage('Error deleting todo');
-      return;
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      const msg = "Error deleting todo";
+      console.log(msg, e);
+      setMessage(msg);
     }
 
-    if (reqData.status == 'ok') {
+    if (responseData.status == 'ok') {
       console.log('todo deleted');
       fetchTodos();
     } else {
       console.log('todo deletion not ok');
-      setMessage(reqData.message);
+      setMessage(responseData.message);
     }
   }
 
@@ -301,32 +297,28 @@ export default function Todos() {
 
     console.log('creating todo: ', newTitle);
 
-    // place to store server response json
-    let resData = null;
+    const apiArgs = {
+      uri: "/api/todos/todos-new",
+      method: "POST",
+      data: {title: newTitle, list: listId},
+      token: token,
+      login: login,
+      logout: logout
+    };
+
+    let responseData = null;
 
     // send request to api to create todo
     try {
-      const response = await fetch('/api/todos/todos-new',{
-	method: 'POST',
-	headers: {
-	  'Authorization': `Bearer ${token}`,
-	  'Content-Type': 'application/json'
-	},
-	body: JSON.stringify({title: newTitle, list: listId})
-      });
-      if (response.status == 401 || response.status == 403) {
-	setMessage('Session expired. please log in again');
-	logout();
-	return;
-      }
-      resData = await response.json();
-    } catch (e: unknown) {
-      console.log('error creating todo: ', e);
-      setMessage('Error creating todo');
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      const msg = 'Error creating todo';
+      console.log(msg, e);
+      setMessage(msg);
       return;
     }
 
-    console.log('todo created: ', resData);
+    console.log('todo created: ', responseData);
     setNewTitle('');
     fetchTodos();
   }
