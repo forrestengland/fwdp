@@ -26,7 +26,7 @@ export default function Todos() {
   const [todoEditTitle, setTodoEditTitle] = useState('');
   const navigate = useNavigate();
   const { loading, token, logout, login } = useAuth();
-  const todoTitleEditRef = useRef(null);
+  const todoTitleEditRef = useRef<HTMLInputElement>(null);
 
   async function submitTodoEditTitle() {
 
@@ -37,6 +37,7 @@ export default function Todos() {
       method: 'PATCH',
       data: {id: todoEditId, title: todoEditTitle},
       token: token,
+      login: login,
       logout: logout
     };
 
@@ -56,14 +57,14 @@ export default function Todos() {
     fetchTodos();
   }
 
-  function handleTodoEditKeydown(event) {
+  function handleTodoEditKeydown(event: React.KeyboardEvent<HTMLInputElement>) {
     if (event.key == 'Enter') {
       event.preventDefault();
       submitTodoEditTitle();
     }
   }
 
-  function todoEditTitleChanged(title) {
+  function todoEditTitleChanged(title: string) {
     setTodoEditTitle(title);
   }
 
@@ -90,7 +91,8 @@ export default function Todos() {
       method: 'DELETE',
       data: null,
       token: token,
-      logout: logout
+      logout: logout,
+      login: login
     };
 
     let responseData = null;
@@ -118,7 +120,8 @@ export default function Todos() {
       method: 'GET',
       token: token,
       data: null,
-      logout: logout
+      logout: logout,
+      login: login
     };
 
     let responseData = null;
@@ -138,8 +141,6 @@ export default function Todos() {
   async function fetchTodos() {
 
     console.log('fetching todos');
-
-    let resData = null;
 
     // default uri - all from default list
     let uri = '/api/todos/todos';
@@ -166,6 +167,7 @@ export default function Todos() {
     const apiArgs = {
       uri: uri,
       method: "GET",
+      data: null,
       token: token,
       logout: logout,
       login: login // pass login so we can set a new access token if it expires
@@ -217,10 +219,8 @@ export default function Todos() {
       login: login
     };
 
-    let responseData = null;
-
     try {
-      responseData = await apiCall(apiArgs);
+      await apiCall(apiArgs);
     } catch (e: any) {
       const message = "Error changing completion";
       console.log(message, e);
@@ -239,6 +239,7 @@ export default function Todos() {
     const apiArgs = {
       uri: `/api/todos/todos/${id}`,
       method: 'DELETE',
+      data: null,
       token: token,
       login: login,
       logout: logout
@@ -263,7 +264,7 @@ export default function Todos() {
     }
   }
 
-  async function newListClicked(e) {
+  async function newListClicked(e: React.FormEvent<HTMLFormElement>) {
 
     e.preventDefault();
 
@@ -275,6 +276,7 @@ export default function Todos() {
       token: token,
       data: {title: newListTitle},
       logout: logout,
+      login: login
     };
 
     let responseData = null;

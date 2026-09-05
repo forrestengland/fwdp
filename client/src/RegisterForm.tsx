@@ -1,11 +1,14 @@
 import { useState, type FormEvent } from 'react';
 import { apiCall } from './Api.tsx';
+import { useAuth } from './AuthContext';
 
 export default function RegisterForm() {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
+
+  const { token, login, logout } = useAuth();
 
   async function handleSubmit(e: FormEvent) {
 
@@ -16,7 +19,10 @@ export default function RegisterForm() {
     const apiArgs = {
       uri: "/api/auth/register",
       method: "POST",
-      data: {email: email, password: password}
+      data: {email: email, password: password},
+      token: token,
+      login: login,
+      logout: logout
     };
 
     let responseData = null;
@@ -25,7 +31,7 @@ export default function RegisterForm() {
       responseData = await apiCall(apiArgs);
     } catch (err: any) {
       const message = "Error registering in";
-      console.log(msg, err);
+      console.log(message, err);
       setMessage(message);
     }
     

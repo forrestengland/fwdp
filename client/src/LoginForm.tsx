@@ -8,7 +8,7 @@ export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState('');
-  const { login } = useAuth();
+  const { token, login, logout } = useAuth();
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -28,7 +28,10 @@ export default function LoginForm() {
     const apiArgs = {
       uri: "/api/auth/login",
       method: "POST",
-      data: {email: email, password: password}
+      data: {email: email, password: password},
+      token: token,
+      login: login,
+      logout: logout
     };
 
     // place to put api call response body

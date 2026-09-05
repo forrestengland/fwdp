@@ -5,7 +5,7 @@ import { apiCall } from './Api.tsx';
 export default function Dashboard() {
 
   const [message, setMessage] = useState('');
-  const { user, token, loading, logout } = useAuth();
+  const { user, token, loading, login, logout } = useAuth();
 
   async function fetchMessage() {
 
@@ -14,7 +14,9 @@ export default function Dashboard() {
       const apiArgs = {
 	uri: "/api/auth/me",
 	method: "GET",
+	data: null,
 	token: token,
+	login: login,
 	logout: logout // provide logout callback if the refresh token is revoked
       };
       let responseData = null;

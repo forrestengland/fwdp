@@ -1,3 +1,5 @@
+/* test todo app authentication api */
+
 import argon2 from 'argon2';
 import { pool } from './db';
 
@@ -11,6 +13,7 @@ import { Router, Request, Response } from 'express';
 
 const router = Router();
 
+// send a verification email for a new account registration
 export async function sendVerificationEmail(email: string, token: string) {
 
   const verificationUrl = `${process.env.APP_URL}/api/auth/verify-email?token=${encodeURIComponent(token)}`;
@@ -36,6 +39,7 @@ export async function sendVerificationEmail(email: string, token: string) {
   return data;
 }
 
+// hash a plaintext password
 export async function hashPassword(password: string) {
 
   const hash = await argon2.hash(password, {
@@ -46,6 +50,7 @@ export async function hashPassword(password: string) {
   return hash;
 }
 
+// account delete api endpoint
 router.post('/account-delete', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
@@ -90,6 +95,7 @@ router.post('/account-delete', authenticateToken, async (req: AuthenticatedReque
   res.json({status: 'ok', message: 'the account was deleted'});
 });
 
+// password change api endpoint
 router.post('/password-change', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
@@ -136,6 +142,7 @@ router.post('/password-change', authenticateToken, async (req: AuthenticatedRequ
   res.json({status: 'ok', message: 'the password was changed'});
 });
 
+// email change endpoint
 router.patch('/email-change', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
@@ -363,7 +370,7 @@ router.post('/login', async (req: Request, res: Response) => {
   res.json({status: 'ok', token: token});
 });
 
-// user dash message - no access token, we use refresh token from cookie to make new access token
+// use refresh token to create new access token. rotate refresh tokens
 router.post('/refresh', async (req: Request, res: Response) => {
 
   console.log("refresh called for new access token");
@@ -396,7 +403,7 @@ router.post('/refresh', async (req: Request, res: Response) => {
   // generate new json web token
   const payload = {userId: token.user_id, email: token.email};
   const secret = process.env.JWT_SECRET as string;
-  const newToken = jwt.sign(payload, secret, {expiresIn: '30s'});
+  const newToken = jwt.sign(payload, secret, {expiresIn: '15m'});
 
   // send the new token
   res.json({status: 'ok', token: newToken});

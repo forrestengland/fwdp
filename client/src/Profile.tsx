@@ -101,7 +101,7 @@ export default function Profile() {
       uri: "/api/auth/account-delete",
       method: "POST",
       token: token,
-      data: { email: user.email, password: passwordDeleteConfirm },
+      data: { email: user?.email, password: passwordDeleteConfirm },
       login: login,
       logout: logout
     };

@@ -6,7 +6,7 @@ import { apiCall } from './Api.tsx';
 export default function Logout() {
 
   const [message, setMessage] = useState('');
-  const { logout, token } = useAuth();
+  const { login, logout, token } = useAuth();
 
   const navigate = useNavigate();
 
@@ -17,11 +17,12 @@ export default function Logout() {
       method: 'POST',
       data: {logout: true},
       token: token,
+      login: login,
       logout: logout
     };
-    let responseData = null;
+
     try {
-      responseData = await apiCall(apiArgs);
+      await apiCall(apiArgs);
     } catch (e: any) {
       const msg = 'error logging out';
       console.log(msg, e);

@@ -7,7 +7,7 @@ interface ApiCallArgs {
   login: (token: string) => void;
 }
 
-export async function refreshToken(login, logout) {
+export async function refreshToken(login: (token: string)=>void, logout: ()=>void) {
 
     // access token has expired. need to request a new one using the refreshToken and retry
     console.log("access token expired. refreshing...");
@@ -36,7 +36,7 @@ export async function refreshToken(login, logout) {
 
 export async function apiCall({ uri, method, token, data, logout, login }: ApiCallArgs) {
 
-  const headers = {};
+  const headers: Record<string, string> = {};
   let body = null;
 
   if (token) {
