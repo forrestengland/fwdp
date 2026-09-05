@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
 import { useAuth } from './AuthContext';
-import apiCall from './Api.tsx'
+import apiCall from './Api.tsx';
 
 interface TodoItem {
   id: string;

@@ -1,3 +1,7 @@
+// auth provider context - handles user session state
+// don't store token in localStorage - insecure
+// store in memory and use refresh token to keep logged in
+
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
 
@@ -31,9 +35,12 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const [user, setUser] = useState<AuthPayload | null>(null);
   const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(true); // loading by default
+  const [loading, setLoading] = useState(false); // loading by default
 
-  useEffect(() => {
+  // code to run when page finishes loading
+  // TODO replace with refresh token exchange
+  /*  useEffect(() => {
+
     const tok = localStorage.getItem('token');
     if (tok) {
 
@@ -55,17 +62,23 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
     }
     setLoading(false);
-  }, []);
+    }, []); */
 
   const login = (tok: string) => {
-    localStorage.setItem('token', tok);
+    
+    //    localStorage.setItem('token', tok);
+    
     const decoded = jwtDecode<AuthPayload>(tok);
+    
     setToken(tok);
+    
     setUser({email: decoded.email, userId: decoded.userId});
   };
 
   const logout = () => {
-    localStorage.removeItem('token');
+
+    // localStorage.removeItem('token');
+    
     setUser(null);
     setToken('');
   };

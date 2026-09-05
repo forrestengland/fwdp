@@ -286,6 +286,17 @@ router.post('/register', async (req: Request, res: Response) => {
   res.json({status: 'ok', message: 'Account created. Check your email'});
 });
 
+// user logout
+router.post('/logout', (req: AuthenticatedRequest, res: Response) => {
+
+  const reqData = req.body;
+
+  console.log('logout request:',reqData);
+
+  res.json({status: 'ok'});
+  
+});
+
 // user login
 router.post('/login', async (req: Request, res: Response) => {
 

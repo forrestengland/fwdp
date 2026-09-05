@@ -27,6 +27,7 @@ export default function LoginForm() {
     fetch('/api/auth/login', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
+      credentials: "include",
       body: JSON.stringify({email: email, password: password})
     }).then(response => {
       if (!response.ok) throw new Error('network response not ok');
@@ -40,7 +41,7 @@ export default function LoginForm() {
 	setMessage('account login successful');
 
 	console.log('got token: ', data.token);
-	login(data.token);
+	login(data.token); // set the access token in the AuthProvider context
 	navigate(from, {replace:true});
 
       } else {

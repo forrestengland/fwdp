@@ -1,16 +1,36 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import apiCall from './Api.tsx';
 
 export default function Logout() {
 
   const [message, setMessage] = useState('');
-  const { logout } = useAuth();
+  const { logout, token } = useAuth();
 
   const navigate = useNavigate();
 
-  function logoutUser() {
+  async function logoutUser() {
+
+    const apiArgs = {
+      uri: '/api/auth/logout',
+      method: 'POST',
+      data: {logout: true},
+      token: token,
+      logout: logout
+    };
+    let responseData = null;
+    try {
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      const msg = 'error logging out';
+      console.log(msg);
+      setMessage(msg);
+      return;
+    }
+
     logout();
+    
     setMessage('you are logged out');
     navigate('/');
   }

@@ -24,7 +24,8 @@ export default async function apiCall({ uri, method, token, data, logout }: ApiC
   const response = await fetch(uri,{
     method: method,
     headers: headers,
-    body: body
+    body: body,
+    credentials: 'include'
   });
 
   if (response.status == 404) {

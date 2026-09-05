@@ -56,3 +56,14 @@ CREATE TABLE todo_lists (
 ALTER TABLE todos ADD list_id UUID REFERENCES todo_lists(id);
 ALTER TABLE todo_lists ADD user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE;
 GRANT ALL ON todo_lists TO fwdp;
+
+-- refresh tokens
+CREATE TABLE refresh_tokens (
+       id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+       user_id UUID NOT NULL REFERENCES users(id),
+       token_hash TEXT NOT NULL,
+       expires_at TIMESTAMPTZ NOT NULL,
+       created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+       revoked_at TIMESTAMPTZ
+);
+GRANT ALL ON refresh_tokens TO fwdp;
