@@ -4,6 +4,7 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { jwtDecode, type JwtPayload } from 'jwt-decode';
+import { refreshToken } from './Api.tsx';
 
 interface AuthPayload extends JwtPayload {
   email: string;
@@ -35,38 +36,36 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const [user, setUser] = useState<AuthPayload | null>(null);
   const [token, setToken] = useState('');
-  const [loading, setLoading] = useState(false); // loading by default
+  const [loading, setLoading] = useState(true); // loading by default
 
   // code to run when page finishes loading
-  // TODO replace with refresh token exchange
-  /*  useEffect(() => {
+  useEffect(() => {
 
-    const tok = localStorage.getItem('token');
-    if (tok) {
-
-      // parse token
-      const decoded = jwtDecode<AuthPayload>(tok);
-      const userEmail = decoded.email;
-
-      if (!decoded.exp) {
-	setLoading(false);
+    const checkToken = async () => {
+    
+      let newToken = '';
+      
+      try {
+	newToken = await refreshToken(login, logout);
+      } catch (e: any) {
+	console.log("error refreshing token", e);
+	setToken('');
 	return;
       }
 
-      if (decoded.exp * 1000 > Date.now()) {
-	setToken(tok);
-	setUser({email: userEmail, userId: decoded.userId});
-      } else {
-	setToken('');
-	localStorage.removeItem('token');
-      }
-    }
-    setLoading(false);
-    }, []); */
+      login(newToken);
+      
+      console.log("token refresh successful");
+	
+      setLoading(false);
+      
+    };
+
+    checkToken();
+    
+  }, []);
 
   const login = (tok: string) => {
-    
-    //    localStorage.setItem('token', tok);
     
     const decoded = jwtDecode<AuthPayload>(tok);
     
@@ -77,8 +76,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const logout = () => {
 
-    // localStorage.removeItem('token');
-    
     setUser(null);
     setToken('');
   };

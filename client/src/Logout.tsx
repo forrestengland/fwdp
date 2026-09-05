@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
-import apiCall from './Api.tsx';
+import { apiCall } from './Api.tsx';
 
 export default function Logout() {
 

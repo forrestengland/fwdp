@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
+import { apiCall } from './Api.tsx';
 
 export default function Dashboard() {
 
@@ -10,22 +11,16 @@ export default function Dashboard() {
 
     if (user && token) {
 
+      const apiArgs = {
+	uri: "/api/auth/me",
+	method: "GET",
+	token: token,
+	logout: logout // provide logout callback if the refresh token is revoked
+      };
+      let responseData = null;
       try {
-	const response = await fetch('/api/auth/me', {
-	  method: 'GET',
-	  headers: {
-	    'Authorization': `Bearer ${token}`,
-	    'Content-Type': 'application/json'
-	  },
-	});
-
-	if (response.status == 401 || response.status == 403) {
-	  throw new Error('Session expired. please log in again');
-	  logout();
-	}
-
-	const result = await response.json();
-	setMessage(result.message);
+	responseData = await apiCall(apiArgs);
+	setMessage(responseData.message);
       } catch (err: any) {
 	setMessage(err.message);
       }

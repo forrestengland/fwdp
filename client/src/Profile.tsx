@@ -2,6 +2,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { apiCall } from './Api.tsx';
 
 export default function Profile() {
 
@@ -12,7 +13,7 @@ export default function Profile() {
   const [passwordChangeConfirm, setPasswordChangeConfirm] = useState('');
   const [passwordDeleteConfirm, setPasswordDeleteConfirm] = useState('');    
   const navigate = useNavigate();
-  const { user, token, logout } = useAuth();
+  const { user, token, login, logout } = useAuth();
 
   async function confirmEmailChange(e: FormEvent) {
 
@@ -23,28 +24,34 @@ export default function Profile() {
     console.log(`confirming email change from ${user} to ${email} with password ${passwordEmailConfirm}`);
 
     // send the email change request to the api server
-    let resData = null;
+    const apiArgs = {
+      uri: "/api/auth/email-change",
+      method: "PATCH",
+      token: token,
+      data: {email: user.email, password: passwordEmailConfirm, email_new: email},
+      login: login,
+      logout: logout
+    };
+
+    let responseData = null;
+
     try {
-      const response = await fetch('/api/auth/email-change', {
-	method: 'PATCH',
-	headers: {
-	  'Authorization': `Bearer ${token}`,
-	  'Content-Type': 'application/json'
-	},
-	body: JSON.stringify({email: user.email, password: passwordEmailConfirm, email_new: email})
-      });
-      resData = await response.json();
-      if (response.status == 401 || response.status == 403) {
-	setMessage('Session expired. please log in again');
-	logout();
-	return;
-      }
-    } catch (error: unknown) {
-      console.log('error updating email');
-      setMessage('Error changing email address');
+      responseData = await apiCall(apiArgs);
+    } catch (error: any) {
+      const msg = "error changing email";
+      console.log(msg, error);
+      setMessage(msg);
     }
-    console.log('got response: ', resData);
-    setMessage(resData.message);
+
+    if (!responseData) {
+      console.log("error: no response data from email change api call");
+      setMessage("Incorrect response from server");
+      return;
+    }
+
+    console.log('got email change response: ', responseData);
+    setMessage(responseData.message);
+    
   }
 
   async function confirmPasswordChange(e: FormEvent) {
@@ -54,30 +61,34 @@ export default function Profile() {
     console.log(`confirming password change`);
 
     if (!token || !user) return;
-    
-    let resData = null;
+
+    const apiArgs = {
+      uri: "/api/auth/password-change",
+      method: "POST",
+      token: token,
+      data: { email: user.email, password: passwordChangeConfirm, new_password: newPassword },
+      login: login,
+      logout: logout
+    };
+
+    let responseData = null;
+
     try {
-      const response = await fetch('/api/auth/password-change', {
-	method: 'POST',
-	headers: {
-	  'Authorization': `Bearer ${token}`,
-	  'Content-Type': 'application/json'
-	},
-	body: JSON.stringify({ email: user.email, password: passwordChangeConfirm, new_password: newPassword })
-      });
-      resData = await response.json();
-      if (response.status == 401 || response.status == 403) {
-	setMessage('Session expired. please log in again');
-	logout();
-	return;
-      }
-    } catch (error: unknown) {
-      console.log('error changing password');
-      setMessage('Error changing password');
+      responseData = await apiCall(apiArgs);
+    } catch(error: any) {
+      const msg = "error changing password";
+      console.log(msg, error);
+      setMessage(msg);
     }
 
-    console.log('got password change response: ', resData);
-    setMessage(resData.message);    
+    if (!responseData) {
+      console.log("error: no resonse data from password change request");
+      setMessage("Incorrect Response from Server");
+      return;
+    }
+    
+    console.log('got password change response: ', responseData);
+    setMessage(responseData.message);    
   }
 
   async function confirmDeleteAccount(e: FormEvent) {
@@ -86,36 +97,29 @@ export default function Profile() {
 
     console.log('confirming account deletion');
 
-    if (!token || !user) return;
-    
-    let resData = null;
+    const apiArgs = {
+      uri: "/api/auth/account-delete",
+      method: "POST",
+      token: token,
+      data: { email: user.email, password: passwordDeleteConfirm },
+      login: login,
+      logout: logout
+    };
+
+    let responseData = null;
+
     try {
-      const response = await fetch('/api/auth/account-delete', {
-	method: 'POST',
-	headers: {
-	  'Authorization': `Bearer ${token}`,
-	  'Content-Type': 'application/json'
-	},
-	body: JSON.stringify({ email: user.email, password: passwordDeleteConfirm })
-      });
-      if (response.status == 401 || response.status == 403) {
-	setMessage('Session expired. please log in again');
-	logout();
-	return;
-      }
-      resData = await response.json();
-    } catch (error: unknown) {
-      console.log('error deleting account');
-      setMessage('Error deleting account');
+      responseData = await apiCall(apiArgs);
+    } catch (error: any) {
+      const msg = "error deleting account";
+      console.log(msg, error);
+      setMessage(msg);
     }
 
-    console.log('got account delete: ', resData);
-    setMessage(resData.message);
+    console.log('got account delete: ', responseData);
+    setMessage(responseData.message);
 
-    // account was deleted, log them out
     logout();
-    //    localStorage.removeItem('token');
-    //    onLogout('Guest');
     navigate('/');
     
   }  

@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow, parseISO } from 'date-fns';
 
 import { useAuth } from './AuthContext';
-import apiCall from './Api.tsx';
+import { apiCall } from './Api.tsx';
 
 interface TodoItem {
   id: string;
@@ -25,7 +25,7 @@ export default function Todos() {
   const [todoEditId, setTodoEditId] = useState('');
   const [todoEditTitle, setTodoEditTitle] = useState('');
   const navigate = useNavigate();
-  const { loading, token, logout } = useAuth();
+  const { loading, token, logout, login } = useAuth();
   const todoTitleEditRef = useRef(null);
 
   async function submitTodoEditTitle() {
@@ -163,31 +163,28 @@ export default function Todos() {
       }
     }
 
+    const apiArgs = {
+      uri: uri,
+      method: "GET",
+      token: token,
+      logout: logout,
+      login: login // pass login so we can set a new access token if it expires
+    };
+
+    let responseData = null;
+
     try {
-      const response = await fetch(uri,{
-	method: 'GET',
-	headers: {
-	  'Authorization': `Bearer ${token}`
-	}
-      });
-
-      if (response.status == 401 || response.status == 403) {
-	setMessage('Session expired. please log in again');
-	logout();
-	return;
-      }
-
-      resData = await response.json();
-      
-    } catch (e: unknown) {
-      console.log('error loading todos: ', e);
-      setMessage('Error loading todos');
-      return;
+      responseData = await apiCall(apiArgs);
+    } catch (e: any) {
+      const msg = 'error fetching todos';
+      console.log(msg, e);
+      setMessage(msg);
     }
 
-    console.log('got todos: ', resData);
+    console.log('got todos: ', responseData);
 
-    setTodos(resData.todos);
+    if (responseData?.todos)
+      setTodos(responseData.todos);
   }
 
   function viewAllClicked() {
@@ -365,7 +362,7 @@ export default function Todos() {
 	<div className="message-container edit-container">
 	  <form onSubmit={(e) => newListClicked(e)}>
 	  <input className="edit-input" type="text" onChange={(e) => setNewListTitle(e.currentTarget.value)} value={newListTitle} />
-	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
 	  </form>
 	</div>
 
@@ -397,7 +394,7 @@ export default function Todos() {
 	<div className="message-container edit-container">
 	  <form onSubmit={newTodoClicked}>
 	  <input type="text" className="edit-input" onChange={(e) => setNewTitle(e.currentTarget.value)} value={newTitle} />
-	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
+	    <button type="submit" className="create-btn edit-btn button-inline"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-plus"><path d="M5 12h14"/><path d="M12 5v14"/></svg></button>
 
 	  </form>
 	</div>

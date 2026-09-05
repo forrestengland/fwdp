@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from './AuthContext';
+import { apiCall } from './Api.tsx';
 
 export default function LoginForm() {
 
@@ -13,10 +14,10 @@ export default function LoginForm() {
   const location = useLocation();
 
   // find out if they were redirected here trying to access a protected page
-  const from = location.state?.from?.pathname || "/dash";
+  const from = location.state?.from?.pathname || "/dash"; // redirect to dash by default
 
   // handle submission of the login form
-  function handleSubmit(e: FormEvent) {
+  async function handleSubmit(e: FormEvent) {
 
     // don't do the normal form post
     e.preventDefault();
@@ -24,33 +25,33 @@ export default function LoginForm() {
     console.log(`submitting login: email = ${email}, password = ${password}`);
 
     // submit the login request
-    fetch('/api/auth/login', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      credentials: "include",
-      body: JSON.stringify({email: email, password: password})
-    }).then(response => {
-      if (!response.ok) throw new Error('network response not ok');
-      return response.json();
-    }).then(data => {
+    const apiArgs = {
+      uri: "/api/auth/login",
+      method: "POST",
+      data: {email: email, password: password}
+    };
 
-      console.log('data rxd', data);
+    // place to put api call response body
+    let responseData =null;
 
-      if (data.status == 'ok') {
+    // make the api call
+    try {
+      responseData = await apiCall(apiArgs);
+    } catch (err: any) {
+      console.log('error logging in: ', err);
+      setMessage('Error logging in');
+      return;
+    }
 
-	setMessage('account login successful');
-
-	console.log('got token: ', data.token);
-	login(data.token); // set the access token in the AuthProvider context
+    // check status and set token if success
+    if (responseData.status == 'ok') {
+	console.log('got token: ', responseData.token);
+	login(responseData.token); // set the access token in the AuthProvider context
 	navigate(from, {replace:true});
-
-      } else {
-	setMessage('failed to login');
-      }
-    }).catch(error => {
-      console.log('fetch error:', error);
-      setMessage('error logging in, is your email verified?');
-    });
+    } else {
+      setMessage('Error logging in');
+      return;
+    }
   }
   
   return (
