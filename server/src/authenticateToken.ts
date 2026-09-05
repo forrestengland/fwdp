@@ -30,9 +30,10 @@ export function authenticateToken(
   const secret = process.env.JWT_SECRET as string;
 
   jwt.verify(token, secret, (err, decoded) => {
+
     if (err) {
       // Token is expired, manipulated, or invalid
-      return res.status(403).json({ error: 'Invalid or expired token' });
+      return res.status(401).json({ error: 'Invalid or expired token' });
     }
 
     // 5. Token is valid! Attach the decoded payload data to the request object

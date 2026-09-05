@@ -2,6 +2,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 
 import express, { Request, Response } from 'express';
+import cookieParser from "cookie-parser";
 
 import authRouter from './auth';
 import todosRouter from './todos';
@@ -11,6 +12,7 @@ const PORT = process.env.PORT || 3000;
 
 // middleware to parse JSON payloads
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/api/auth', authRouter);
 app.use('/api/todos', todosRouter);
