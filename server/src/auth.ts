@@ -1,15 +1,17 @@
 /* test todo app authentication api */
 
-import argon2 from 'argon2';
+import { Router, Request, Response } from 'express';
+
 import { pool } from './db';
 
 import jwt from 'jsonwebtoken';
 import crypto from 'node:crypto';
+import argon2 from 'argon2';
 
-import { authenticateToken, AuthenticatedRequest } from './authenticateToken';
 import { resend } from './resend';
 
-import { Router, Request, Response } from 'express';
+import { authenticateToken, AuthenticatedRequest } from './authenticateToken';
+import log from './logger.ts';
 
 const router = Router();
 
@@ -23,7 +25,7 @@ async function generateRefreshToken(userid: string, res: Response) {
   try {
     const result = await pool.query("INSERT INTO refresh_tokens (user_id,token_hash,expires_at) VALUES($1,$2, NOW() + INTERVAL '1 day')", [userid,refreshTokenHash]);
   } catch (error: unknown) {
-    console.log('error storing refresh token:', error);
+    req.log.error(error, "failed to store refresh token");
     res.json({status: 'failed', message: 'error logging in'});
     return;
   }
@@ -78,7 +80,7 @@ export async function hashPassword(password: string) {
 router.post('/account-delete', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
-  console.log('got account delete request: ', reqData);
+  req.log.info(reqData, "got account delete request");
 
   const email = reqData.email;
   const password = reqData.password;
@@ -89,14 +91,15 @@ router.post('/account-delete', authenticateToken, async (req: AuthenticatedReque
   try {
     const result = await pool.query('SELECT id,password_hash FROM users WHERE email = $1', [email]);
     if (result.rows.length != 1) {
-      console.log('error getting password hash on account delete request');
+      req.log.error("error getting password hash from db on account delet request");
       res.json({status: 'failed', message: 'no user account'});
       return;
     }
     password_hash = result.rows[0].password_hash;
     user_id = result.rows[0].id;
   } catch (error: unknown) {
-    console.log('error checking user info on account delete request: ', error);
+    req.log.error(error, "error checking user info on account delete");
+    
     res.status(400).send("error confirming password on account delete");
     return;
   }
@@ -111,7 +114,7 @@ router.post('/account-delete', authenticateToken, async (req: AuthenticatedReque
   try {
     await pool.query('DELETE FROM users WHERE id = $1', [user_id]);
   } catch (error: unknown) {
-    console.log('error deleting account: ', error);
+    req.log.error(error, "error deleting account");
     res.json({status: 'failed', message: 'error deleting account'});
     return;
   }
@@ -123,7 +126,7 @@ router.post('/account-delete', authenticateToken, async (req: AuthenticatedReque
 router.post('/password-change', authenticateToken, async (req: AuthenticatedRequest, res: Response) => {
 
   const reqData = req.body;
-  console.log('got password change request: ', reqData);
+  req.log.info(reqData, "got password change request");
 
   const email = reqData.email;
   const password_old = reqData.password;
@@ -135,14 +138,14 @@ router.post('/password-change', authenticateToken, async (req: AuthenticatedRequ
   try {
     const result = await pool.query('SELECT id,password_hash FROM users WHERE email = $1', [email]);
     if (result.rows.length != 1) {
-      console.log('error getting password hash on password change request');
+      req.log.error("error getting password hash on password change request");
       res.json({status: 'failed', message: 'no such user'});
       return;
     }
     password_old_hash = result.rows[0].password_hash;
     user_id = result.rows[0].id;
   } catch (error: unknown) {
-    console.log('error checking user info on password change request: ', error);
+    req.log.error(error, "error checking user info on password change request");
     res.status(400).send("error confirming password on password change");
     return;
   }
@@ -158,7 +161,7 @@ router.post('/password-change', authenticateToken, async (req: AuthenticatedRequ
   try {
     await pool.query('UPDATE users SET password_hash = $1 WHERE id = $2', [password_new_hash, user_id]);
   } catch (error: unknown) {
-    console.log('error updating user password hash: ', error);
+    req.log.error(error, "error updating user password hash");
     res.json({status: 'failed', message: 'error updating password'});
     return;
   }
@@ -171,7 +174,7 @@ router.patch('/email-change', authenticateToken, async (req: AuthenticatedReques
 
   const reqData = req.body;
   
-  console.log('email change request:', reqData);
+  req.log.info(reqData, "email change request");
 
   // the old email address from the request
   const email_old = reqData.email;
@@ -186,14 +189,14 @@ router.patch('/email-change', authenticateToken, async (req: AuthenticatedReques
   try {
     const result = await pool.query('SELECT id,password_hash FROM users WHERE email = $1', [email_old]);
     if (result.rows.length != 1) {
-      console.log('error getting password hash on email update request');
+      req.log.error("error getting password hash on email update request");
       res.json({status: 'failed', message: 'no such user'});
       return;
     }
     password_hash = result.rows[0].password_hash;
     user_id = result.rows[0].id;
   } catch (error: unknown) {
-    console.log('error checking user info on email update request: ', error);
+    req.log.error("error checking user info on email update request");
     res.status(400).send("error confirming password");
     return;
   }
@@ -213,7 +216,7 @@ router.patch('/email-change', authenticateToken, async (req: AuthenticatedReques
       return;
     }
   } catch (error: unknown) {
-    console.log('error checking if email is unique processing email change request');
+    console.log("error checking if email is unique processing email change request");
     res.status(400).send("error checking new email is unique");
     return;
   }
@@ -230,7 +233,7 @@ router.patch('/email-change', authenticateToken, async (req: AuthenticatedReques
     // update the pending_email column for the user to update the email once it's confirmed
     await pool.query("UPDATE users SET pending_email = $1 WHERE id = $2", [email_new, user_id]);
   } catch (error: unknown) {
-    console.log('error creating user token: ', error);
+    req.log.error(error, "error creating user token");
     res.json({status: 'failed'});
     return;
   }
@@ -267,7 +270,7 @@ router.get('/verify-email', async (req: Request, res: Response) => {
     
     res.redirect(`${process.env.APP_URL}/email-verified`);
   } catch (error: unknown) {
-    console.log('error verifying user: ', error);
+    req.log.error(error, "error verifying user");
     res.json({status: 'failed'});
     return;
   }
@@ -282,10 +285,9 @@ router.get('/health', (req: Request, res: Response) => {
 router.post('/register', async (req: Request, res: Response) => {
 
   const reqData = req.body;
-  console.log('registration request:', reqData);
+  req.log.info(reqData, "registration request");
 
   const hash = await hashPassword(reqData.password);
-  console.log('hash:',hash);
 
   // need to store the registration in the database
   let user_id = null;
@@ -294,7 +296,7 @@ router.post('/register', async (req: Request, res: Response) => {
     // get generated user id
     user_id = result.rows[0].id;
   } catch (error: unknown) {
-    console.log('error creating user: ', error);
+    req.log.error(error, "error creating user");
     res.json({status: 'failed'});
     return;
   }
@@ -307,7 +309,7 @@ router.post('/register', async (req: Request, res: Response) => {
   try {
     const result = await pool.query("INSERT INTO email_verification_tokens (user_id, token_hash, expires_at) VALUES($1,$2, NOW() + INTERVAL '24 hours')", [user_id, email_token_hash]);
   } catch (error: unknown) {
-    console.log('error creating user token: ', error);
+    req.log.error(error, "error creating user token");
     res.json({status: 'failed'});
     return;
   }
@@ -322,7 +324,7 @@ router.post('/logout', authenticateToken, async (req: AuthenticatedRequest, res:
 
   const reqData = req.body;
 
-  console.log('logout request:',reqData);
+  req.log.info(reqData, "logout request");
 
   // revoke refresh token
   try {
@@ -339,7 +341,8 @@ router.post('/logout', authenticateToken, async (req: AuthenticatedRequest, res:
 router.post('/login', async (req: Request, res: Response) => {
 
   const reqData = req.body;
-  console.log('login request:', reqData);
+
+  req.log.info("login request");
 
   const password = reqData.password;
   const email = reqData.email;
@@ -347,7 +350,6 @@ router.post('/login', async (req: Request, res: Response) => {
 
   try {
     const query = `SELECT id,password_hash FROM users WHERE EMAIL = '${email}' AND email_verified_at IS NOT NULL`;
-    console.log(query);
     
     const result = await pool.query(query);
     
@@ -366,7 +368,7 @@ router.post('/login', async (req: Request, res: Response) => {
 
     userid = result.rows[0].id; 
   } catch (error: unknown) {
-    console.log('error checking user: ', error);
+    req.log.error(error, "error checking user");
     res.json({status: 'failed'})
     return;
   }
@@ -385,12 +387,12 @@ router.post('/login', async (req: Request, res: Response) => {
 // use refresh token to create new access token. rotate refresh tokens
 router.post('/refresh', async (req: Request, res: Response) => {
 
-  console.log("refresh called for new access token");
+  req.log.info("refresh called for new access token");
 
   // get old refresh token
   const refreshToken = req.cookies?.refreshToken;
 
-  console.log("refresh token from cookie: ", refreshToken);
+  req.log.info(refreshToken, "got old refresh token");
 
   // access denied if no refresh token in cookie
   if (!refreshToken) {
@@ -400,18 +402,17 @@ router.post('/refresh', async (req: Request, res: Response) => {
   // hash refresh token from request to check against database
   const tokenHash = crypto.createHash("sha256").update(refreshToken).digest("hex");
 
-  console.log("got refresh token hash: ", tokenHash);
-
   let result = null;
 
   try {
     result = await pool.query("SELECT r.id,r.user_id,r.expires_at,r.revoked_at,u.email FROM refresh_tokens r JOIN users u ON u.id = r.user_id WHERE token_hash = $1", [tokenHash]);
   } catch (e: any) {
+    req.log.error(e, "failed finding stored refresh token in db");
     return res.json({status: 'failure', message: "failed finding stored refresh token"});
+    
   }
 
   const token = result.rows[0];
-  console.log("got refresh token from db: ", token);
 
   if (!token) {
     return res.sendStatus(401);
@@ -427,12 +428,13 @@ router.post('/refresh', async (req: Request, res: Response) => {
   try {
     ret = await pool.query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL RETURNING *", [token.user_id]);
   } catch (e: any) {
+    req.log.error(e, "failed revoking stored refresh token");
     return res.json({status: 'failure', message: "failed revoking old stored refresh token"});
   }
 
   // if we didn't update something, maybe concurrency issue, throw 401
   if (!ret.rows.length) {
-    console.log("error rotating refresh token");
+    req.log.error("error rotating refresh token");
     return res.sendStatus(401);
   }
 
@@ -464,7 +466,7 @@ router.get('/me', authenticateToken, async (req: AuthenticatedRequest, res: Resp
     }
     openItems = result.rows[0].count;
   } catch (error: unknown) {
-    console.log('error checking incomplete todo items:', error);
+    req.log.error(error, "error checking incomplete todo item count");
     res.json({status: 'failed', message: 'error getting todo count'});
     return;
   }
