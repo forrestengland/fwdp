@@ -62,15 +62,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
     };
 
-    if (token) {
-      checkToken();
-    } else {
-      setLoading(false);
-    }
+    checkToken();
     
   }, []);
 
   const login = (tok: string) => {
+
+    if (!token) {
+      setLoading(false);
+    }
     
     const decoded = jwtDecode<AuthPayload>(tok);
     
