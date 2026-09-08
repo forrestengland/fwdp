@@ -11,7 +11,7 @@ import argon2 from 'argon2';
 import { resend } from './resend';
 
 import { authenticateToken, AuthenticatedRequest } from './authenticateToken';
-import log from './logger.ts';
+import log from './logger';
 
 const router = Router();
 
@@ -25,7 +25,7 @@ async function generateRefreshToken(userid: string, res: Response) {
   try {
     const result = await pool.query("INSERT INTO refresh_tokens (user_id,token_hash,expires_at) VALUES($1,$2, NOW() + INTERVAL '1 day')", [userid,refreshTokenHash]);
   } catch (error: unknown) {
-    req.log.error(error, "failed to store refresh token");
+    log.error(error, "failed to store refresh token");
     res.json({status: 'failed', message: 'error logging in'});
     return;
   }
@@ -328,7 +328,7 @@ router.post('/logout', authenticateToken, async (req: AuthenticatedRequest, res:
 
   // revoke refresh token
   try {
-    await pool.query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL", [req.user?.user_id]);
+    await pool.query("UPDATE refresh_tokens SET revoked_at = NOW() WHERE user_id = $1 AND revoked_at IS NULL", [req.user?.userId]);
   } catch (e: any) {
     return res.json({status: 'failure', message: "failed revoking stored refresh token"});
   }  

@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { pool } from './db';
 import { authenticateToken, AuthenticatedRequest } from './authenticateToken';
 
-import log from './logger.ts';
+import log from './logger';
 
 const router = Router();
 

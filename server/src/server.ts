@@ -4,7 +4,7 @@ dotenv.config();
 import express, { Request, Response } from 'express';
 import cookieParser from "cookie-parser";
 
-import log from './logger.ts';
+import log from './logger';
 log.type = 'none';
 
 import authRouter from './auth';
