@@ -1,2 +1,4 @@
 # fwdp
-Forrest's web dev platform - playing with user creation with confirmation emails and json web tokens
+Forrest's web dev platform
+simple test app to demonstrate user email registration and refresh tokens
+

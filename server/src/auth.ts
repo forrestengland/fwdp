@@ -89,6 +89,10 @@ router.post('/account-delete', authenticateToken, async (req: AuthenticatedReque
   let password_hash = '';
   let user_id = '';
   try {
+
+    // first delete all the refresh tokens for the user
+    const result1 = await pool.query('DELETE FROM refresh_tokens WHERE user_id = $1', [req.user?.userId]);
+    
     const result = await pool.query('SELECT id,password_hash FROM users WHERE email = $1', [email]);
     if (result.rows.length != 1) {
       req.log.error("error getting password hash from db on account delet request");

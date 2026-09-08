@@ -50,6 +50,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       } catch (e: any) {
 	console.log("error refreshing token", e);
 	setToken('');
+	setLoading(false);
 	return;
       }
 
@@ -61,7 +62,11 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       
     };
 
-    checkToken();
+    if (token) {
+      checkToken();
+    } else {
+      setLoading(false);
+    }
     
   }, []);
 

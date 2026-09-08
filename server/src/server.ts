@@ -5,7 +5,7 @@ import express, { Request, Response } from 'express';
 import cookieParser from "cookie-parser";
 
 import log from './logger';
-log.type = 'none';
+log.type = 'console';
 
 import authRouter from './auth';
 import todosRouter from './todos';
