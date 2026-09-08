@@ -67,3 +67,5 @@ CREATE TABLE refresh_tokens (
        revoked_at TIMESTAMPTZ
 );
 GRANT ALL ON refresh_tokens TO fwdp;
+
+GRANT ALL ON email_verification_tokens TO fwdp;

@@ -11,7 +11,7 @@ class Logger {
   constructor() {
 
     this.enabled = true;
-    this.type = 'pino';
+    this.type = 'console';
     
     this.logger = pinoHttp();
   }
